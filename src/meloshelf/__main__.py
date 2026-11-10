@@ -1,6 +1,8 @@
 """MeloShelf local-first desktop GUI (browser or optional Qt WebEngine shell)."""
 import argparse
+import logging
 from pathlib import Path
+import sqlite3
 import sys
 import threading
 import webbrowser
@@ -30,7 +32,12 @@ def main(argv=None):
     parser.add_argument('--db',type=Path,default=None,help='Alternative local SQLite library path')
     args=parser.parse_args(argv)
     if args.port<0 or args.port>65535:parser.error('Invalid port')
-    server=create_server(db_path=args.db,port=args.port)
+    logging.basicConfig(level=logging.INFO,stream=sys.stderr,
+                        format='time=%(asctime)s level=%(levelname)s logger=%(name)s %(message)s')
+    try:server=create_server(db_path=args.db,port=args.port)
+    except sqlite3.Error as exc:
+        print(f'MeloShelf cannot open its library database: {exc}',file=sys.stderr)
+        return 2
     url=f'http://127.0.0.1:{server.server_address[1]}/'
     print(f'MeloShelf 0.2.0 · local interface: {url}',flush=True)
     print('Phase 2: audio files are strictly READ-ONLY; tagging, renaming, moving and deleting are disabled.',flush=True)

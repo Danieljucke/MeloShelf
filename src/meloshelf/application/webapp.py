@@ -1,7 +1,9 @@
 """Loopback-only GUI service. All operations are read-only with respect to audio."""
 import json
+import logging
 import os
 import secrets
+import sqlite3
 from pathlib import Path
 from threading import Thread, Event, Lock
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
@@ -9,15 +11,18 @@ from urllib.parse import urlparse, parse_qs
 
 from meloshelf.application.scanner import LibraryScanner
 from meloshelf.application.recognition import RecognitionService
+from meloshelf.infrastructure.database import Database, DatabaseBusyError
 from meloshelf.infrastructure.repository import LibraryRepository
 from meloshelf.infrastructure.match_store import MatchStore
 from meloshelf.infrastructure.fingerprint import Fingerprinter
 from meloshelf.infrastructure.music_api import AcoustIDClient, MusicBrainzClient
 
+log=logging.getLogger(__name__)
+
 
 class JobManager:
-    def __init__(self, db_path: Path):
-        self.db_path=Path(db_path)
+    def __init__(self, database: Database):
+        self.database=database
         self._lock=Lock()
         self._stop=Event()
         self._state={'running':False,'kind':'','completed':0,'message':'Ready. Your music has not been modified.','errors':0}
@@ -36,7 +41,9 @@ class JobManager:
             self._state={'running':True,'kind':kind,'completed':0,'message':f'{kind.title()} started','errors':0}
         def run():
             try:worker()
-            except Exception as exc:self._update(message=f'{kind.title()} failed: {type(exc).__name__}: {exc}',errors=1)
+            except Exception as exc:
+                log.exception('job failed kind=%s',kind)
+                self._update(message=f'{kind.title()} failed: {type(exc).__name__}: {exc}',errors=1)
             finally:self._update(running=False)
         Thread(target=run,name=f'meloshelf-{kind}',daemon=True).start()
         return True
@@ -47,58 +54,63 @@ class JobManager:
         def run():
             scanner=LibraryScanner()
             count=0
-            with_db=LibraryRepository(self.db_path)
-            try:
-                batch=[]
-                for track in scanner.iter_tracks(Path(folder),should_stop=self._stop.is_set):
-                    batch.append(track);count+=1
-                    if len(batch)>=200:
-                        with_db.save_many(batch);batch.clear();self._update(completed=count,message=f'Indexed {count:,} audio files')
-                if batch:with_db.save_many(batch)
-                self._update(completed=count,errors=len(scanner.errors),message=(
-                    'Scan stopped' if self._stop.is_set() else f'Indexed {count:,} audio files. {len(scanner.errors)} access errors.'))
-            finally:with_db.close()
+            repo=LibraryRepository(self.database)
+            batch=[]
+            # Tags are read outside any transaction; each batch is one short write.
+            for track in scanner.iter_tracks(Path(folder),should_stop=self._stop.is_set):
+                batch.append(track);count+=1
+                if len(batch)>=200:
+                    repo.save_many(batch);batch.clear();self._update(completed=count,message=f'Indexed {count:,} audio files')
+            if batch:repo.save_many(batch)
+            self._update(completed=count,errors=len(scanner.errors),message=(
+                'Scan stopped' if self._stop.is_set() else f'Indexed {count:,} audio files. {len(scanner.errors)} access errors.'))
         return self.start('scan',run)
 
     def identify(self,limit,offline):
         def run():
-            repo=LibraryRepository(self.db_path)
-            store=MatchStore(self.db_path)
+            repo=LibraryRepository(self.database)
+            store=MatchStore(self.database)
             key=os.environ.get('MELOSHELF_ACOUSTID_KEY','').strip()
             agent=os.environ.get('MELOSHELF_MUSICBRAINZ_USER_AGENT','').strip()
             acoustid=AcoustIDClient(key) if key and not offline else None
             musicbrainz=MusicBrainzClient(agent) if agent and not offline else None
             service=RecognitionService(Fingerprinter(),acoustid,musicbrainz,store,offline=offline)
             errors=0;processed=0
-            try:
-                tracks=repo.for_recognition(limit)
-                for t in tracks[:limit]:
-                    if self._stop.is_set():break
-                    path=Path(t['path'])
-                    stat=path.stat() if path.is_file() else None
-                    if stat is None or stat.st_size!=t['size'] or stat.st_mtime_ns!=t['mtime_ns']:
-                        errors+=1
-                        self._update(message=f'File changed since scan: {path.name}',errors=errors)
-                        continue
-                    report=service.identify(path)
-                    processed+=1
-                    if report.status.value in ('error','changed'):errors+=1
-                    self._update(completed=processed,errors=errors,message=f'Analyzed {processed}/{min(limit,len(tracks))} fingerprints · {report.status.value}')
-                self._update(message=('Identification paused' if self._stop.is_set() else f'Identification completed: {processed} tracks, {errors} errors.'))
-            finally:store.close();repo.close()
+            tracks=repo.for_recognition(limit)
+            for t in tracks[:limit]:
+                if self._stop.is_set():break
+                path=Path(t['path'])
+                stat=path.stat() if path.is_file() else None
+                if stat is None or stat.st_size!=t['size'] or stat.st_mtime_ns!=t['mtime_ns']:
+                    errors+=1
+                    self._update(message=f'File changed since scan: {path.name}',errors=errors)
+                    continue
+                report=service.identify(path)
+                processed+=1
+                if report.status.value in ('error','changed'):errors+=1
+                self._update(completed=processed,errors=errors,message=f'Analyzed {processed}/{min(limit,len(tracks))} fingerprints · {report.status.value}')
+            self._update(message=('Identification paused' if self._stop.is_set() else f'Identification completed: {processed} tracks, {errors} errors.'))
         return self.start('identify',run)
 
 
 class MeloShelfServer(ThreadingHTTPServer):
     daemon_threads=True
     allow_reuse_address=True
+    # The page fires several API calls at once; the default backlog of 5 makes
+    # the surplus connections wait for a TCP retry.
+    request_queue_size=128
 
     def __init__(self, address, db_path, html_path):
         super().__init__(address,ApiHandler)
         self.db_path=Path(db_path)
         self.html_path=Path(html_path)
         self.token=secrets.token_urlsafe(32)
-        self.jobs=JobManager(db_path)
+        # Schema and WAL are settled here, before the first request can arrive.
+        self.database=Database(self.db_path)
+        self.database.initialize()
+        self.repo=LibraryRepository(self.database)
+        self.store=MatchStore(self.database)
+        self.jobs=JobManager(self.database)
 
 
 def handler_json(handler, status, data):
@@ -127,7 +139,20 @@ class ApiHandler(BaseHTTPRequestHandler):
         except (ValueError,UnicodeDecodeError,json.JSONDecodeError):
             return None
 
-    def do_GET(self):
+    def _guarded(self,route):
+        """Turn database failures into a JSON answer instead of a dropped connection."""
+        try:return route()
+        except DatabaseBusyError as exc:
+            log.warning('database busy method=%s path=%s detail=%s',self.command,self.path,exc)
+            return handler_json(self,503,{'error':str(exc)})
+        except sqlite3.Error as exc:
+            log.exception('database error method=%s path=%s',self.command,self.path)
+            return handler_json(self,500,{'error':f'Library database error: {type(exc).__name__}: {exc}'})
+
+    def do_GET(self):return self._guarded(self._get)
+    def do_POST(self):return self._guarded(self._post)
+
+    def _get(self):
         if not self._authorized_host():return handler_json(self,403,{'error':'Host not allowed'})
         parsed=urlparse(self.path)
         if parsed.path in ('/','/index.html'):
@@ -145,21 +170,15 @@ class ApiHandler(BaseHTTPRequestHandler):
             try:limit=max(1,min(200,int(q.get('limit',['50'])[0])));offset=max(0,int(q.get('offset',['0'])[0]))
             except ValueError:return handler_json(self,400,{'error':'Invalid paging'})
             search=q.get('q',[''])[0][:200]
-            repo=LibraryRepository(self.server.db_path)
-            try:rows=repo.list_tracks(limit=limit,offset=offset,query=search)
-            finally:repo.close()
+            rows=self.server.repo.list_tracks(limit=limit,offset=offset,query=search)
             return handler_json(self,200,{'tracks':rows,'offset':offset,'limit':limit})
         if parsed.path=='/api/stats':
-            repo=LibraryRepository(self.server.db_path)
-            try:counts=repo.counts()
-            finally:repo.close()
-            return handler_json(self,200,counts)
+            return handler_json(self,200,self.server.repo.counts())
         if parsed.path=='/api/matches':
-            with MatchStore(self.server.db_path) as store:results=store.list_results()
-            return handler_json(self,200,{'matches':results})
+            return handler_json(self,200,{'matches':self.server.store.list_results()})
         return handler_json(self,404,{'error':'Not found'})
 
-    def do_POST(self):
+    def _post(self):
         if not self._authorized_host():return handler_json(self,403,{'error':'Host not allowed'})
         origin=self.headers.get('Origin')
         if origin and origin not in (f'http://127.0.0.1:{self.server.server_address[1]}',f'http://localhost:{self.server.server_address[1]}'):
@@ -191,8 +210,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             decision=payload.get('decision');f=payload.get('path');recording_id=payload.get('recording_id','')
             if not isinstance(f,str) or decision not in ('accepted','rejected','pending'):
                 return handler_json(self,400,{'error':'Invalid decision'})
-            try:
-                with MatchStore(self.server.db_path) as store:ok=store.set_decision(f,decision,recording_id=recording_id)
+            try:ok=self.server.store.set_decision(f,decision,recording_id=recording_id)
             except ValueError as exc:return handler_json(self,400,{'error':str(exc)})
             return handler_json(self,200 if ok else 404,{'saved':ok,'note':'Recording decision only: album edition unresolved, audio unchanged'})
         return handler_json(self,404,{'error':'Not found'})
