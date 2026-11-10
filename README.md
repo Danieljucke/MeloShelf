@@ -1,101 +1,221 @@
-# MeloShelf — intelligent music library studio
+# MeloShelf
 
-**v0.2.0 · Phase 2 (read-only identification) · Windows, macOS and Linux**
+**A local-first music library organizer.** MeloShelf audits a music collection, reads its existing tags, and identifies unknown recordings from acoustic fingerprints — all from a small web interface served on your own machine.
 
-MeloShelf is a local-first graphical application for auditing a music collection, reading its existing tags, and identifying unknown recordings from acoustic fingerprints. Its visual direction is based on the user's `Meloshelf.html`: warm rose theme, circular artists, vinyl-inspired albums, dark/light themes, and an explicit review workflow.
+> **Version 0.2.0 — read-only.** MeloShelf currently inspects and identifies music. It does **not** rename, retag, move, overwrite or delete any audio file. Those features are on the roadmap and stay disabled until their safety engine is complete.
 
-**Important:** This version DOES NOT rename, retag, move, overwrite or delete audio. The proposed file move transaction interface is *not implemented*. A saved review decision only records a recording ID in SQLite, not an album edition and not a file change. The UI ships with clearly identified demo examples until you scan a real folder.
+## Contents
 
-## Start the GUI
+- [What it does today](#what-it-does-today)
+- [Project status](#project-status)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Running MeloShelf](#running-meloshelf)
+- [Enabling acoustic identification](#enabling-acoustic-identification)
+- [How it works](#how-it-works)
+- [HTTP API](#http-api)
+- [Project layout](#project-layout)
+- [Development](#development)
+- [Security and privacy](#security-and-privacy)
+- [Roadmap](#roadmap)
+- [License](#license)
 
-Python **3.11+** is required. No build tooling is needed for the built-in local graphical UI (opens in your browser):
+## What it does today
 
-```bash
-cd MeloShelf-v0.2.0
-python -m venv .venv
-# macOS/Linux:
-source .venv/bin/activate
-# Windows PowerShell:
-# .venv\Scripts\Activate.ps1
-python -m pip install -e .
-python -m meloshelf
-```
+- **Scans a folder recursively** for audio files (`.mp3 .flac .m4a .aac .ogg .opus .wav .aiff .aif`). Symbolic links are skipped; scans can be cancelled.
+- **Reads existing tags** (title, artist, album, year) and classifies each file as *tagged*, *needs review* or *unidentified* (missing or generic titles such as `Track 01`).
+- **Indexes the library in SQLite**, with paged and searchable listing.
+- **Identifies recordings** by computing a Chromaprint fingerprint, looking it up on AcoustID and enriching candidates through MusicBrainz. Results are cached, so repeated runs and offline mode reuse earlier answers.
+- **Keeps you in charge.** Candidates are proposals. Accepting one records your chosen recording ID in the database and nothing else. Unknown songs stay in the review queue; identities are never invented.
 
-The application opens a loopback-only interface, normally at `http://127.0.0.1:<random-port>/`. It uses a one-time session token for any state-changing request and does not accept external connections. To launch without opening a tab automatically, use `python -m meloshelf --no-browser`.
+## Project status
 
-**Optional native window:** `pip install -e '.[desktop]'` and then `python -m meloshelf --desktop`. This is an experimental Qt WebEngine wrapper, **not runtime-validated in the build environment**. The browser UI is the primary tested frontend.
+Statuses describe evidence, not intent: `VALIDATED` means automated tests plus a real run on the named platform; `GREEN` means automated tests pass (external services mocked where noted).
 
-The local SQLite index is saved at `~/.meloshelf/library.sqlite3`. Use `--db /path/to/library.sqlite3` to select another location. Scanning a folder requires its full local absolute path in the dialog, which the Python service reads from the same computer.
+| Area | Status | Notes |
+| --- | --- | --- |
+| Library scanning | GREEN | Unit and HTTP tests; cancellable; read-only |
+| Tag reading | GREEN | Title, artist, album, year via Mutagen |
+| SQLite indexing and concurrency | VALIDATED (Windows) | Concurrent reads/writes, restart, integrity check, live multi-request runs |
+| Local HTTP server | VALIDATED (Windows) | Loopback only, token-protected writes |
+| Fingerprinting (`fpcalc`) | GREEN (mocked) | Not yet verified against a real Chromaprint binary |
+| AcoustID lookup | GREEN (mocked) | Real-service run requires your own API key |
+| MusicBrainz enrichment | IN_PROGRESS | Works with mocked responses; retry/backoff not implemented yet |
+| Response caching | GREEN | Fingerprints, AcoustID and MusicBrainz answers |
+| Review workflow | GREEN | Per recording; album edition is left unresolved |
+| Web interface | IN_PROGRESS | Shows labelled sample data until a folder is scanned; artist/album views summarize the loaded page only |
+| Packaging | IN_PROGRESS | `pip install` works; no installers yet |
+| Album-edition matching | NOT_STARTED | |
+| Duplicate detection | NOT_STARTED | |
+| Artwork retrieval | NOT_STARTED | |
+| Tag writing | NOT_STARTED | |
+| File organization (move) | NOT_STARTED | Deliberately disabled |
+| Backup and recovery | NOT_STARTED | |
 
-For a static visual demo with sample data, simply open `design-preview/index.html` without Python. It cannot read your audio or identify tracks.
+Platform support: developed and run on **Windows 11 / Python 3.13**. The code avoids platform-specific paths, but **macOS and Linux are untested** so far.
 
-## Enable acoustic identification
+## Requirements
 
-1. Install the Chromaprint command-line utility (`fpcalc`) and verify it can be launched from a terminal (`fpcalc -version`). Installing FFmpeg as well is recommended for broad audio-format support.
-2. Obtain your **own** AcoustID application API key from https://acoustid.org/new-application . The free service has non-commercial use conditions, and limits requests to **three per second**.
-3. Supply the key as an environment variable. Do not commit credentials to Git or source files.
-4. Optionally configure MusicBrainz enrichment using a **meaningful User-Agent with your real project contact**. MusicBrainz limits requests to one per second and requires a properly identifying User-Agent.
+- Python **3.11 or newer**
+- Optional, for identification: the Chromaprint command-line tool [`fpcalc`](https://acoustid.org/chromaprint) on your `PATH`, plus a free [AcoustID application key](https://acoustid.org/new-application)
 
-**macOS / Linux:**
+The only runtime dependency is [Mutagen](https://mutagen.readthedocs.io/).
 
-```bash
-export MELOSHELF_ACOUSTID_KEY='YOUR_OWN_ACOUSTID_KEY'
-export MELOSHELF_MUSICBRAINZ_USER_AGENT='MeloShelf/0.2.0 (you@example.com)'
-python -m meloshelf
-```
+## Installation
 
-**Windows PowerShell:**
+Clone the repository and install it into a virtual environment. Calling the environment's interpreter by path guarantees the packages land in the right place.
+
+**Windows (PowerShell)**
 
 ```powershell
-$env:MELOSHELF_ACOUSTID_KEY = 'YOUR_OWN_ACOUSTID_KEY'
-$env:MELOSHELF_MUSICBRAINZ_USER_AGENT = 'MeloShelf/0.2.0 (you@example.com)'
-python -m meloshelf
+git clone https://github.com/Danieljucke/MeloShelf.git
+cd MeloShelf
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e .
 ```
 
-The email shown is a **placeholder**, not a usable contact: replace it with your own before using MusicBrainz. If no User-Agent is provided, MeloShelf skips MusicBrainz enrichment instead of sending an anonymous request.
-
-Click **Scan folder** first, then **Identify** → **Analyze fingerprints**. The recognition queue prioritizes files with missing/generic tags. The app sends **only fingerprint text and duration** to AcoustID, never raw audio. MusicBrainz receives recording identifiers, never raw audio. Scoring is a provider-provided match strength, **not a calibrated probability or verified album edition**. Multiple plausible editions remain unresolved.
-
-Selecting a candidate and clicking **Accept recording** stores the chosen recording ID only. It does not authorize any modification of the file or album assignment. Recordings without matches remain unidentified. Offline mode can reuse cached recognition data but cannot identify never-seen recordings without an offline reference database.
-
-## Tests
+**macOS / Linux**
 
 ```bash
-python -m pip install -e '.[dev]'
-pytest -q
-python -m compileall -q src tests
+git clone https://github.com/Danieljucke/MeloShelf.git
+cd MeloShelf
+python3 -m venv .venv
+.venv/bin/python -m pip install -e .
 ```
 
-The suite currently contains **30 passing tests**: scanner and metadata index, AcoustID/MusicBrainz parsing, caching, offline paths, external API failures, file-change detection, rate limiting, review decisions and integration tests for the loopback API. Tests use deterministic mocked external responses; **they do not prove recognition quality with a real music collection**.
+## Running MeloShelf
 
-The HTML preview was separately rendered in Chromium at desktop and mobile viewport sizes. The real loopback UI could not be navigated in automated Chromium in this sandbox because browser URL navigation was blocked by environment policy; the backend HTTP routes were tested separately.
+```powershell
+.\.venv\Scripts\python.exe -m meloshelf      # Windows
+```
 
-## Design and architecture
+```bash
+.venv/bin/python -m meloshelf                # macOS / Linux
+```
 
-- `design-preview/index.html` — standalone visual demo, also the local UI shell.
-- `src/meloshelf/presentation/web/index.html` — packaged UI copy for installed distributions.
-- `src/meloshelf/application/scanner.py` — filesystem traversal, read-only tags, cancellation.
-- `src/meloshelf/application/recognition.py` — fingerprint + online lookup + conservative proposals.
-- `src/meloshelf/application/webapp.py` — loopback service, indexing jobs, review decisions.
-- `src/meloshelf/infrastructure/fingerprint.py` — subprocess-based Chromaprint CLI adapter.
-- `src/meloshelf/infrastructure/music_api.py` — AcoustID and MusicBrainz adapters.
-- `src/meloshelf/infrastructure/match_store.py` — SQLite evidence and decision records.
-- `tests/` — test-first implementation evidence.
+MeloShelf prints its address (`http://127.0.0.1:<port>/`) and opens it in your browser. Click **Scan folder**, enter the full path of your music folder, then explore the indexed library.
 
-The old Qt Quick interface is archived under `docs/legacy-qt/`. The HTML/Qt WebEngine direction supersedes that UI; no v0.2.0 tests exercise the archived QML code.
+| Option | Effect |
+| --- | --- |
+| `--no-browser` | Start the service without opening a browser tab |
+| `--port N` | Use a fixed loopback port instead of a random one |
+| `--db PATH` | Use another library database (default: `~/.meloshelf/library.sqlite3`) |
+| `--desktop` | Experimental native window; needs `pip install -e ".[desktop]"` (untested) |
 
-## Known limitations / next phase
+Stop the application with `Ctrl+C`. Your library index is kept between runs.
 
-- `fpcalc` is required for recognition, and most live matches require network connectivity and API keys.
-- Review is per **recording**, not finalized album edition. Album-aware batch reconstruction comes next.
-- The application does not yet write tags, fetch cover art, compare duplicates or move files.
-- Live Artists/Albums/Genres screens currently summarize the **loaded page**, not the entire 50,000-song database; this will be replaced with aggregate paged API endpoints.
-- Local scan jobs are cancellable but do not yet have durable transaction checkpoints; incremental indexing is persisted.
-- Packaging installers, notarization, code signing and real Windows/macOS/Linux desktop validation remain outstanding.
-- No public license has been selected yet. Review licenses for dependencies and API providers before distributing commercially.
+## Enabling acoustic identification
 
-## Security boundary
+1. Install `fpcalc` and check that `fpcalc -version` works in a terminal.
+2. Create your own AcoustID application key.
+3. Provide the settings as environment variables — never commit them.
 
-The server binds only to `127.0.0.1`, verifies the Host header, rejects foreign request Origins, requires an unpredictable token on POST, caps JSON request sizes, and never exposes a remote listener. Identified filenames and tags are escaped in the HTML UI. No user-controlled tag or filename is ever used as a shell command.
+```powershell
+$env:MELOSHELF_ACOUSTID_KEY = 'your-acoustid-key'
+$env:MELOSHELF_MUSICBRAINZ_USER_AGENT = 'MeloShelf/0.2.0 (you@example.com)'
+```
 
-The source files are never changed. **Do not rely on this release to move music collections**; destructive actions will only be added after journal, backup, checksum, rollback and interrupted-operation TDD is complete.
+```bash
+export MELOSHELF_ACOUSTID_KEY='your-acoustid-key'
+export MELOSHELF_MUSICBRAINZ_USER_AGENT='MeloShelf/0.2.0 (you@example.com)'
+```
+
+MusicBrainz requires a User-Agent with a real contact; replace the placeholder address. Without it, MeloShelf skips enrichment rather than sending anonymous requests. Without an AcoustID key, only **offline mode** (cached answers) is available.
+
+Then open **Identify → Analyze fingerprints**. Files with missing or generic tags are processed first. Requests are rate-limited to respect each provider (AcoustID: 3 per second; MusicBrainz: 1 per second).
+
+A match score is the provider's match strength, not a probability, and a recording match does not determine the album edition.
+
+## How it works
+
+```
+Browser UI  ──HTTP (127.0.0.1)──►  Local service  ──►  Scanner ── reads ──► your audio files
+                                        │              Recognition ──► fpcalc, AcoustID, MusicBrainz
+                                        ▼
+                                  SQLite library (tracks, cache, review decisions)
+```
+
+The code is layered: `domain` (models and tag classification), `application` (scanning, recognition, the HTTP service), `infrastructure` (SQLite, tag reader, fingerprint and API adapters) and `presentation` (the web page). See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for details, including the database concurrency model.
+
+## HTTP API
+
+All endpoints are served on the loopback interface only.
+
+| Method and path | Purpose |
+| --- | --- |
+| `GET /api/status` | Current background job and progress |
+| `GET /api/config` | Whether identification services are configured |
+| `GET /api/stats` | Track counts by status |
+| `GET /api/tracks?limit=&offset=&q=` | Paged, searchable track list |
+| `GET /api/matches` | Identification proposals and decisions |
+| `POST /api/scan` `{folder}` | Start a read-only scan |
+| `POST /api/identify` `{limit, offline}` | Start an identification batch |
+| `POST /api/stop` `{}` | Ask the running job to stop |
+| `POST /api/decision` `{path, decision, recording_id}` | Save a review decision |
+
+`POST` requests must carry the session token (`X-MeloShelf-Token`) that the service embeds in the page. Database contention is reported as `503` with an explanatory message.
+
+## Project layout
+
+```
+src/meloshelf/
+├── __main__.py              command-line entry point
+├── domain/models.py         Track model, tag-completeness classification
+├── application/
+│   ├── scanner.py           recursive read-only folder scan
+│   ├── recognition.py       fingerprint → lookup → proposals
+│   └── webapp.py            loopback HTTP service and background jobs
+├── infrastructure/
+│   ├── database.py          SQLite setup, migrations, read/write coordination
+│   ├── repository.py        track index
+│   ├── match_store.py       lookup cache and review decisions
+│   ├── tags.py              tag reader
+│   ├── fingerprint.py       fpcalc adapter
+│   └── music_api.py         AcoustID and MusicBrainz clients
+└── presentation/web/index.html   user interface
+tests/                       automated test suite
+scripts/scan_cli.py          command-line scan without the web interface
+docs/                        architecture and design notes
+```
+
+## Development
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+The suite has 44 tests covering scanning, the track index, recognition (with mocked providers), review decisions, the HTTP API and database concurrency. Mocked provider tests do not demonstrate real-world recognition quality.
+
+**Branches**
+
+| Branch | Purpose |
+| --- | --- |
+| `main` | Stable, released state |
+| `dev` | Integration of ongoing feature work |
+| `bug` | Bug fixes awaiting integration |
+| `test` | Test-suite and tooling work |
+| `qa` | Release candidates under verification |
+
+Work is developed test-first, and commits follow [Conventional Commits](https://www.conventionalcommits.org/).
+
+## Security and privacy
+
+- The service binds to `127.0.0.1` only, validates the `Host` and `Origin` headers, requires an unpredictable per-session token for every state-changing request and caps request sizes.
+- Audio never leaves your computer. AcoustID receives a fingerprint and a duration; MusicBrainz receives recording identifiers.
+- Credentials are read from environment variables and are never stored in the repository or sent to the browser.
+- File names and tags are escaped before display and are never passed to a shell.
+
+## Roadmap
+
+1. **Identification hardening** — retries with backoff, duration-aware candidate comparison, resumable scans, verification against real providers.
+2. **Album-aware matching** — distinguish original, deluxe, remastered, live, compilation and multi-disc editions; ask when several remain plausible.
+3. **Artwork and metadata** — cover retrieval, side-by-side comparison, editable proposals, undo.
+4. **Duplicate detection** — exact copies, different encodings of one recording, related recordings. Never deletes automatically.
+5. **Safe organization** — `Artist/Year - Album/NN - Title` structure with dry-run preview, explicit approval, operation journal, verification and recovery. File moves remain disabled until this is fully validated.
+6. **Interface** — whole-library artist and album views, progress and evidence displays, settings, duplicate manager.
+7. **Packaging** — installers and validation on macOS and Linux.
+
+## License
+
+No license has been chosen yet. Until one is added, the code is published for reference and all rights are reserved by the author.

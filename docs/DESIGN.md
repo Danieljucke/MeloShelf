@@ -1,6 +1,6 @@
 # MeloShelf design system · v0.2.0
 
-The source of visual direction is the user-provided `Meloshelf.html`. v0.2.0 extends—not replaces—the supplied design language.
+v0.2.0 extends—not replaces—the original MeloShelf design language.
 
 - Typography: Bricolage Grotesque for headings, Figtree for reading, system fallback when offline.
 - Light theme: rose-pale background `#f7f1f0`, white surfaces, rose accent `#c0405a`.
@@ -13,6 +13,4 @@ The source of visual direction is the user-provided `Meloshelf.html`. v0.2.0 ext
 
 ## Validation boundaries
 
-`design-preview/index.html` includes sample data with the label "DESIGN PREVIEW" when opened standalone. When served by the Python application it reads live data through the authenticated loopback API. The Safety page shows placeholders labeled as *not enabled*, not fabricated checks.
-
-Preview files: `design-preview/home-preview.png`, `identify-preview.png`, `mobile-preview.png`.
+The interface (`src/meloshelf/presentation/web/index.html`) shows sample data labeled "DESIGN PREVIEW" when opened as a standalone file. When served by the Python application it reads live data through the authenticated loopback API. The Safety page shows placeholders labeled as *not enabled*, not fabricated checks.
