@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Test and lint caches
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local databases
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+
+# Local working material, not part of the application
+design-preview/
+docs/legacy-qt/
+docs/TDD_*.md

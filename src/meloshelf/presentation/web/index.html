@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MeloShelf — Music library studio</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#f7f1f0;--sf:#fff;--sf2:#f0e6e5;--ink:#1e1618;--mu:#85777a;--ln:#eadcdb;--ac:#c0405a;--acs:#f9dfe4;--on:#fff;--ok:#3f8a62;--oks:#dcefe4;--rv:#9a6a14;--rvs:#f8e8c6;--un:#a0405f;--uns:#f6dbe3;--cl:86%;--cd:66%;--ct:30%}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#130f11;--sf:#1d1719;--sf2:#271f22;--ink:#f5edee;--mu:#9a8a8e;--ln:#32282b;--ac:#f0768c;--acs:#40202a;--on:#130f11;--ok:#7fcba0;--oks:#1b3126;--rv:#e5b95c;--rvs:#3a2d12;--un:#f09ab0;--uns:#40202c;--cl:30%;--cd:56%;--ct:86%}}
+:root[data-theme="dark"]{--bg:#130f11;--sf:#1d1719;--sf2:#271f22;--ink:#f5edee;--mu:#9a8a8e;--ln:#32282b;--ac:#f0768c;--acs:#40202a;--on:#130f11;--ok:#7fcba0;--oks:#1b3126;--rv:#e5b95c;--rvs:#3a2d12;--un:#f09ab0;--uns:#40202c;--cl:30%;--cd:56%;--ct:86%}
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Figtree,system-ui,sans-serif;display:grid;grid-template-columns:228px minmax(0,1fr);min-height:100vh}
+h1,h2,h3{font-family:"Bricolage Grotesque",Figtree,system-ui,sans-serif;letter-spacing:-.02em;margin:0;line-height:1.1}
+h1{font-size:clamp(30px,4vw,44px);font-weight:700}h2{font-size:22px;font-weight:700}p{margin:0}.m{color:var(--mu)}.n{font-variant-numeric:tabular-nums}
+a{color:inherit;text-decoration:none}:focus-visible{outline:2px solid var(--ac);outline-offset:3px}
+nav{position:sticky;top:0;height:100vh;padding:26px 16px;display:flex;flex-direction:column;gap:2px}
+.logo{font:700 24px "Bricolage Grotesque",sans-serif;letter-spacing:-.03em;padding:0 12px 22px}.logo i{color:var(--ac);font-style:normal}
+nav a{padding:10px 14px;border-radius:12px;color:var(--mu);font-weight:500;display:flex;justify-content:space-between}
+nav a:hover{color:var(--ink);background:var(--sf2)}nav a.on{background:var(--acs);color:var(--ac)}
+nav b{font-size:12px;background:var(--ac);color:var(--on);border-radius:99px;padding:0 8px}
+.foot{margin-top:auto;padding:12px;font-size:13px;color:var(--mu)}
+main{padding:28px clamp(16px,3.5vw,48px) 70px;max-width:1160px}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:28px;flex-wrap:wrap}
+.pill{font-size:12.5px;padding:5px 14px;border-radius:99px;background:var(--sf2);color:var(--mu)}
+.btn{border:0;cursor:pointer;font:600 14px Figtree,sans-serif;padding:10px 18px;border-radius:99px;background:var(--ac);color:var(--on)}.btn.g{background:var(--sf2);color:var(--ink)}
+section[data-v]{display:none}section[data-v].on{display:block}
+.tb{display:flex;gap:10px;margin:22px 0 8px;flex-wrap:wrap;align-items:center}
+.tb input,.tb select{font:inherit;color:var(--ink);background:var(--sf);border:1px solid var(--ln);border-radius:99px;padding:9px 16px}
+.tb input{flex:1;min-width:170px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 4px}
+.chip{border:1px solid var(--ln);background:transparent;color:var(--mu);border-radius:99px;padding:6px 15px;font:500 13px Figtree,sans-serif;cursor:pointer}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.cnt{font-size:13px;color:var(--mu);margin:14px 0}
+.ar{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:26px 16px}
+.ar a{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;cursor:pointer}
+.av{aspect-ratio:1;width:100%;max-width:132px;border-radius:50%;display:grid;place-items:center;background:hsl(var(--h) 38% var(--cl));color:hsl(var(--h) 40% var(--ct));font:700 32px "Bricolage Grotesque",sans-serif;letter-spacing:-.03em}
+.av.q{background:transparent;border:2px dashed var(--mu);color:var(--mu)}
+.al{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:24px 18px}
+.cv{aspect-ratio:1;border-radius:16px;background:hsl(var(--h) 40% var(--cl));position:relative;margin-bottom:10px}
+.cv i{position:absolute;inset:20%;border-radius:50%;border:2px solid hsl(var(--h) 40% var(--cd))}
+.cv::after{content:"";position:absolute;inset:43%;border-radius:50%;background:hsl(var(--h) 40% var(--cd))}
+.al b{display:block;font-weight:600}.al small{color:var(--mu);font-size:13px}
+.gn{display:flex;flex-wrap:wrap;gap:22px;align-items:center;margin-top:24px}
+.gn button{border:0;cursor:pointer;border-radius:50%;background:hsl(var(--h) 38% var(--cl));color:hsl(var(--h) 40% var(--ct));font:700 16px "Bricolage Grotesque",sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gn small{font:400 12px Figtree,sans-serif}
+.tw{overflow-x:auto;background:var(--sf);border-radius:20px;border:1px solid var(--ln)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th{text-align:left;font-weight:500;color:var(--mu);font-size:13px;padding:14px 18px}
+td{padding:11px 18px;border-top:1px solid var(--ln)}td:first-child{font-weight:500}
+.tag{font-size:12px;font-weight:600;padding:2px 11px;border-radius:99px;white-space:nowrap}
+.ok{background:var(--oks);color:var(--ok)}.rv{background:var(--rvs);color:var(--rv)}.un{background:var(--uns);color:var(--un)}
+.hero{background:var(--sf);border-radius:28px;padding:clamp(22px,3vw,38px);border:1px solid var(--ln)}
+.hero p{max-width:54ch;margin-top:12px}
+.pl{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:28px}
+.st{background:var(--sf2);border-radius:20px;padding:14px 16px}.st strong{display:block;font:700 26px "Bricolage Grotesque",sans-serif;letter-spacing:-.03em}.st small{color:var(--mu)}
+.bar{height:5px;border-radius:9px;background:var(--ln);margin-top:10px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac);border-radius:9px}
+.sec{margin-top:36px}.sec>div:first-child{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:20px;padding:20px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.list{list-style:none;padding:0;margin:10px 0 0}.list li{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--ln)}
+.steps{display:flex;gap:4px;flex-wrap:wrap;margin:16px 0}.steps span{flex:1;min-width:100px;padding:9px 12px;background:var(--sf2);border-radius:99px;font-size:12.5px;color:var(--mu);text-align:center}
+.steps .d{background:var(--oks);color:var(--ok)}.steps .c{background:var(--ac);color:var(--on);font-weight:600}
+.act{position:sticky;bottom:14px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--ink);color:var(--bg);border-radius:99px;padding:10px 12px 10px 22px}
+.note{margin-top:16px;padding:12px 18px;border-radius:16px;background:var(--oks);color:var(--ok);font-size:14px}
+@media(max-width:860px){body{grid-template-columns:1fr}nav{position:static;height:auto;flex-direction:row;overflow-x:auto;padding:12px}.logo{padding:0 10px 0 4px}nav a{white-space:nowrap}.foot{display:none}.g3,.g2{grid-template-columns:1fr}.pl{grid-template-columns:1fr 1fr}}
+</style>
+
+<style id="meloshelf-upgrades">
+:root{--shadow:0 10px 44px rgba(70,28,40,.035)}
+body{grid-template-columns:236px minmax(0,1fr);background:var(--bg);background-image:radial-gradient(circle at 85% 0,rgba(192,64,90,.035),transparent 42%)}
+nav{border-right:1px solid var(--ln);background:var(--sf);padding-top:32px;gap:4px}
+.logo{padding:0 12px 36px;line-height:1}.brand-sub{display:block;font:700 9px Figtree,system-ui,sans-serif;letter-spacing:2.5px;color:var(--mu);margin-top:9px}
+nav a{transition:background .18s ease,color .18s ease,transform .18s ease}nav a:hover{transform:translateX(2px)}
+nav a.on{font-weight:700}.local-dot,.workspace-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:7px}.foot{border-top:1px solid var(--ln);line-height:1.6;font-weight:700;letter-spacing:.4px}.foot-copy{font-weight:400;letter-spacing:0;font-size:12px}
+main{max-width:1440px;width:100%;padding:34px clamp(20px,4vw,62px) 92px}
+.top{margin-bottom:30px}.top-left,.top-actions{display:flex;align-items:center;gap:12px}.top-left{flex-wrap:wrap}.path-small{font-size:12px;color:var(--mu)}.pill{background:var(--acs);color:var(--ac);font-weight:700;letter-spacing:.7px;font-size:10px}.btn{transition:transform .2s,box-shadow .2s;background:var(--ac)}.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 22px rgba(192,64,90,.19)}.btn:disabled{opacity:.55;cursor:not-allowed}.btn.g:hover{box-shadow:none}
+.hero{border:1px solid var(--ln);min-height:310px;background:radial-gradient(ellipse at 90% 0%,var(--acs) 0,transparent 51%),var(--sf);box-shadow:var(--shadow);overflow:hidden;position:relative}
+.hero:after{content:'';position:absolute;right:-35px;top:-82px;width:280px;height:280px;border:24px solid var(--ac);border-radius:50%;opacity:.11;pointer-events:none}.hero h1{max-width:730px;font-size:clamp(38px,4.8vw,65px);letter-spacing:-.05em}.hero h1 em{font-style:normal;color:var(--ac)}
+.hero p{line-height:1.65;font-size:15px}.eyebrow{font-size:10px;font-weight:800;letter-spacing:2.7px;color:var(--ac);margin-bottom:15px}.intro{margin-top:12px}.hero-actions{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:24px}.text-link{font-size:13px;color:var(--ink);font-weight:700}.text-link:hover{color:var(--ac)}
+.pl{position:relative;z-index:1;gap:12px;margin-top:29px}.st{padding:18px;border:1px solid transparent}.st strong{font-size:28px}.st small{font-weight:600}.st .bar{margin-top:15px}
+.card,.tw{box-shadow:var(--shadow)}.sec{margin-top:42px}.sec h2{font-size:25px}
+.ar{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:30px 18px}.av{transition:transform .2s,box-shadow .2s}.ar a:hover .av{transform:scale(1.045);box-shadow:0 14px 30px #00000012}.ar b{font-size:14px}.cv{overflow:hidden;transition:transform .2s}.al>div:hover .cv{transform:translateY(-4px)}.cv:before{content:'';position:absolute;inset:4px;border:1px solid hsl(var(--h) 40% var(--cd));opacity:.32;border-radius:12px}
+.tb{margin-top:24px}.tb input,.tb select{outline:none}.tb input:focus,.tb select:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--acs)}
+.operation-banner{display:flex;align-items:center;gap:13px;background:var(--sf);border:1px solid var(--ln);border-radius:17px;padding:12px 18px;margin-bottom:21px}.pulse-icon{font-size:22px;color:var(--ac);background:var(--acs);border-radius:50%;width:38px;height:38px;display:grid;place-items:center}.op-content{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}.op-content strong{font-size:13px}.op-content small{color:var(--mu);font-size:12px}.mini-btn{font:600 12px Figtree,sans-serif;cursor:pointer;padding:8px 13px;border:1px solid var(--ln);color:var(--ink);background:var(--sf);border-radius:99px}.mini-btn:disabled{cursor:default;opacity:.35}.list-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}.list-footer>div{display:flex;gap:6px}.tw tr:hover td{background:var(--sf2)}
+.identify-layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(270px,1fr);gap:18px;margin-top:28px}.identify-main{padding:30px}.identify-icon{display:flex;align-items:center;justify-content:space-between;color:var(--ac);font-size:49px;width:108px;height:92px;border-radius:24px;background:var(--acs);margin-bottom:22px;padding:0 18px}.identify-icon span{font-size:18px;letter-spacing:-7px;opacity:.6}.identify-main p{line-height:1.7;margin-top:13px}.identify-tools{display:flex;align-items:end;flex-wrap:wrap;gap:18px;margin-top:22px}.small-label{font-weight:700;font-size:12px;display:flex;flex-direction:column;gap:7px}.small-label select,.small-label input{font:inherit;color:var(--ink);background:var(--sf);border:1px solid var(--ln);padding:11px 14px;border-radius:13px;min-width:160px}.check-line{font-size:12px;color:var(--mu);display:flex;align-items:center;gap:9px;padding-bottom:12px}.check-line input{accent-color:var(--ac)}#recognizeConfig{font-size:12px}.identify-explain{list-style:none;margin:18px 0 0;padding:0;display:flex;flex-direction:column;gap:18px}.identify-explain li{display:flex;gap:12px}.identify-explain li span{background:var(--sf2);color:var(--ac);width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:12px;font-size:11px;font-weight:700}.identify-explain li div{display:flex;flex-direction:column;gap:4px}.identify-explain li strong{font-size:13px}.identify-explain li small{font-size:12px;color:var(--mu);line-height:1.5}
+.match-list{display:grid;gap:12px}.match-row{display:grid;grid-template-columns:42px minmax(0,1fr) auto;align-items:center;gap:16px;background:var(--sf);border:1px solid var(--ln);border-radius:16px;padding:15px}.match-avatar{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:var(--acs);color:var(--ac)}.match-row strong{display:block;font-size:14px}.match-row small{color:var(--mu);font-size:12px;overflow-wrap:anywhere}.match-row .match-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.candidate-picker{font:500 12px Figtree,sans-serif;border:1px solid var(--ln);background:var(--sf);color:var(--ink);padding:8px;border-radius:9px;max-width:220px}.match-row .match-actions button{white-space:nowrap}.empty-work{border:1px dashed var(--ln);padding:46px 20px;border-radius:22px;text-align:center}.empty-work>span{display:block;font-size:48px;color:var(--ac)}.empty-work h3{margin:5px 0}
+dialog{width:min(520px,calc(100vw - 30px));border:1px solid var(--ln);background:var(--sf);color:var(--ink);padding:0;border-radius:26px;box-shadow:0 25px 90px #0003}dialog::backdrop{background:#16101598;backdrop-filter:blur(6px)}.modal-inner{padding:32px}.modal-head{display:flex;justify-content:space-between;align-items:center}.modal-head .eyebrow{margin:0}.close-x{border:0;background:var(--sf2);border-radius:50%;width:32px;height:32px;font-size:24px;color:var(--mu);cursor:pointer}.modal-inner h2{margin-top:18px}.modal-inner input{width:100%;font-size:14px}.modal-actions{display:flex;justify-content:end;gap:8px;margin-top:24px}.modal-hint{margin-top:16px;font-size:12px;color:var(--mu)}.toast{position:fixed;right:28px;bottom:25px;background:var(--ink);color:var(--bg);max-width:380px;border-radius:16px;padding:13px 18px;box-shadow:0 12px 40px #0002;font-size:13px;z-index:12;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none}.toast.show{opacity:1;transform:translateY(0)}
+@media(max-width:1100px){.identify-layout{grid-template-columns:1fr}.hero:after{opacity:.05}}
+@media(max-width:860px){body{grid-template-columns:1fr}nav{height:auto;position:relative;padding:12px;border-bottom:1px solid var(--ln);border-right:0}.logo{padding:0 16px 0 6px;font-size:20px}.brand-sub{font-size:7px;letter-spacing:1px}.foot{display:none}nav a:hover{transform:none}main{padding:18px 22px 65px}.top{margin-bottom:16px}.hero:after{display:none}}
+@media(max-width:540px){.pl{grid-template-columns:1fr 1fr}.hero{padding:22px}.hero h1{font-size:35px}.st strong{font-size:22px}.match-row{grid-template-columns:38px minmax(0,1fr)}.match-actions{grid-column:2}.top-left{max-width:100%}.top-actions .btn{padding:8px 12px}.path-small{display:none}.identify-main{padding:20px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}}
+</style>
+</head>
+<body>
+<nav aria-label="Main">
+<div class="logo">Melo<i>Shelf</i><span class="brand-sub">MUSIC LIBRARY STUDIO</span></div>
+<a href="#home">Home</a><a href="#artists">Artists</a><a href="#albums">Albums</a><a href="#songs">Songs</a><a href="#genres">Genres</a><a href="#identify">Identify <b>NEW</b></a><a href="#review">Review</a><a href="#safety">Safety</a>
+<div class="foot"><span class="local-dot"></span> LOCAL-FIRST WORKSPACE<br><span class="foot-copy">No audio is edited or moved in this release.</span></div>
+</nav>
+<main>
+<div class="top"><div class="top-left"><span class="workspace-dot"></span><span class="pill" id="mode-pill">DESIGN PREVIEW · SAMPLE LIBRARY</span><span class="path-small" id="source-path">Your collection, thoughtfully organized</span></div><div class="top-actions"><button class="btn g" id="th" type="button" aria-label="Switch theme">☾ <span>Theme</span></button><button class="btn" id="scanLaunch" type="button">＋ Scan folder</button></div></div>
+<div class="operation-banner" id="operationBanner" aria-live="polite"><div class="pulse-icon">◌</div><div class="op-content"><strong id="operationTitle">Ready to organize your music</strong><small id="operationMessage">Open the scanner to index files locally. Recognition proposes matches; it never changes your audio.</small></div><button class="mini-btn" id="stopTask" type="button" hidden>Stop</button></div>
+
+<section data-v="home">
+<div class="hero"><div class="eyebrow">WELCOME TO YOUR LIBRARY</div><h1>Your music, <em>in harmony.</em></h1>
+<p class="m">From mystery files to a beautiful collection. Discover missing identities, reconnect albums and keep every decision in your hands.</p><div class="hero-actions"><button class="btn" type="button" onclick="document.getElementById('scanLaunch').click()">Explore my music <span aria-hidden="true">↗</span></button><a href="#identify" class="text-link">How recognition works <span aria-hidden="true">→</span></a></div>
+<div class="pl">
+<div class="st"><strong class="n">12,480</strong><small>Analysed</small><div class="bar"><i style="width:100%"></i></div></div>
+<div class="st"><strong class="n">9,102</strong><small>Identified</small><div class="bar"><i style="width:73%"></i></div></div>
+<div class="st"><strong class="n">7,340</strong><small>Validated</small><div class="bar"><i style="width:59%"></i></div></div>
+<div class="st"><strong class="n">6,915</strong><small>Organised</small><div class="bar"><i style="width:55%"></i></div></div></div></div>
+<div class="sec"><div><h2>Meet your artists</h2><a class="m" href="#artists">See all</a></div><div class="ar" id="hA"></div></div>
+<div class="sec"><div><h2>On your shelf</h2><a class="m" href="#albums">See all</a></div><div class="al" id="hB"></div></div>
+</section>
+
+<section data-v="artists"><div class="eyebrow">YOUR COLLECTION</div><h1>Artists</h1><p class="intro m">The voices behind your library, grouped in one place.</p>
+<div class="tb"><input type="search" data-q placeholder="Search artists" aria-label="Search artists"><select data-s="artists" aria-label="Sort artists"></select></div><div class="chips" data-ch></div>
+<p class="cnt" id="cA"></p><div class="ar" id="lA"></div></section>
+
+<section data-v="albums"><div class="eyebrow">YOUR COLLECTION</div><h1>Albums</h1><p class="intro m">Every release with its own place on the shelf.</p>
+<div class="tb"><input type="search" data-q placeholder="Search albums or artists" aria-label="Search albums"><select data-s="albums" aria-label="Sort albums"></select></div><div class="chips" data-ch></div>
+<p class="cnt" id="cB"></p><div class="al" id="lB"></div></section>
+
+<section data-v="songs"><div class="eyebrow">YOUR COLLECTION</div><h1>Songs</h1><p class="intro m">Explore your tracks, even those still waiting for a name.</p>
+<div class="tb"><input type="search" data-q placeholder="Search title, artist or file name" aria-label="Search songs"><select data-s="songs" aria-label="Sort songs"></select></div><div class="chips" data-ch></div>
+<p class="cnt" id="cS"></p>
+<div class="tw"><table><thead><tr><th>Title</th><th>Artist</th><th>Album</th><th>Genre</th><th>Year</th><th>Time</th><th>State</th></tr></thead><tbody id="lS"></tbody></table></div>
+<div class="list-footer"><p class="cnt" id="pageCaption">Sample rows · scan a folder to explore your real files</p><div><button type="button" class="mini-btn" id="pagePrev" disabled>← Previous</button><button type="button" class="mini-btn" id="pageNext" disabled>Next →</button></div></div></section>
+
+<section data-v="genres"><div class="eyebrow">EXPLORE</div><h1>Genres</h1><p class="m" style="margin-top:8px">Circle size shows how many songs you have. Choose one to filter your albums.</p><div class="gn" id="lG"></div></section>
+
+
+<section data-v="identify"><div class="eyebrow">ACOUSTIC DISCOVERY</div><h1>Give every song a name.</h1><p class="intro m">We analyze fingerprints locally and request candidate identities from AcoustID and MusicBrainz. You choose what is correct.</p>
+<div class="identify-layout"><div class="card identify-main"><div class="identify-icon">♫ <span>∿∿</span></div><h2>Find the music behind the filename</h2><p class="m">Real fingerprint recognition is available when you run the local application, install fpcalc, and configure your own API key. Results are proposals, never automatically verified album editions.</p><div class="identify-tools"><label class="small-label">Tracks in this batch<select id="batchLimit" aria-label="Recognition batch size"><option value="5">5 tracks</option><option value="20">20 tracks</option><option value="50">50 tracks</option><option value="100">100 tracks</option></select></label><label class="check-line"><input id="offlineMode" type="checkbox"> Use cached results only</label></div><div class="hero-actions"><button class="btn" id="startRecognize" type="button">Analyze fingerprints ↗</button><span class="m" id="recognizeConfig">Connect to the local application to run recognition</span></div></div>
+<div class="card info-card"><h3>How it works</h3><ol class="identify-explain"><li><span>01</span><div><strong>Listen without uploading</strong><small>Chromaprint calculates a compact fingerprint on your device.</small></div></li><li><span>02</span><div><strong>Compare recordings</strong><small>AcoustID returns possible matches, with raw match scores.</small></div></li><li><span>03</span><div><strong>Rebuild context</strong><small>MusicBrainz provides recording and release candidates.</small></div></li><li><span>04</span><div><strong>You review</strong><small>Ambiguities are never silently resolved.</small></div></li></ol></div></div>
+<div class="sec"><div><h2>Identification results</h2><span class="m" id="matchesCount">No live results yet</span></div><div id="matchesList" class="match-list"><div class="empty-work"><span>◎</span><h3>Discovery starts here</h3><p class="m">Scan a folder, then start recognition to populate this queue.</p></div></div></div></section>
+<dialog id="scanDialog" aria-labelledby="scanDialogTitle"><form method="dialog" id="scanForm" class="modal-inner"><div class="modal-head"><span class="eyebrow">ADD TO YOUR SHELF</span><button type="button" id="closeDialog" class="close-x" aria-label="Close">×</button></div><h2 id="scanDialogTitle">Where does your music live?</h2><p class="m" style="margin-top:10px">Choose a local folder path. MeloShelf will read audio filenames and metadata without touching the original files.</p><label for="folderPath" class="small-label" style="margin-top:22px">Folder path<input id="folderPath" type="text" placeholder="/home/you/Music or C:\Users\you\Music" autocomplete="off" spellcheck="false"></label><div class="modal-actions"><button class="btn g" type="button" id="cancelScan">Cancel</button><button class="btn" type="submit" id="startScan">Start read-only scan →</button></div><p class="modal-hint" id="scanHint">Use the app locally to grant folder access; the standalone HTML is a design demonstration.</p></form></dialog>
+<div id="toast" class="toast" aria-live="polite" role="status"></div>
+
+<section data-v="review"><div class="eyebrow">YOUR DECISIONS</div><h1>Review</h1><p class="m" style="margin-top:8px">Untick any change you do not want. Unticked fields stay exactly as they are.</p>
+<div class="tw" style="margin-top:20px"><table><thead><tr><th></th><th>File</th><th>Field</th><th>Before</th><th>After</th></tr></thead><tbody id="rv"></tbody></table></div>
+<div class="act"><span id="rc"></span><span style="display:flex;gap:8px"><button class="btn g" id="postponeDemo" type="button">Postpone</button><button class="btn" id="approveDemo" type="button" disabled title="File changes are disabled">Approve plan · unavailable</button></span></div>
+<p class="note">This phase supports review decisions only. Changes to audio tags and file locations are not enabled.</p></section>
+
+<section data-v="safety"><div class="eyebrow">PROTECT WHAT MATTERS</div><h1>Safety</h1><p class="intro m">This release is strictly read-only. Moving, tagging and recovery are not yet enabled.</p>
+<div class="g3">
+<div class="card"><span class="tag ok">Exact copy</span><h3 style="margin-top:12px">Same bytes, same hash</h3><p class="m" style="margin-top:6px">Not yet calculated. Exact duplicate detection comes in a later phase.</p></div>
+<div class="card"><span class="tag rv">Same recording</span><h3 style="margin-top:12px">Different encodings</h3><p class="m" style="margin-top:6px">Coming later. A higher bitrate is not always better.</p></div>
+<div class="card"><span class="tag un">Related version</span><h3 style="margin-top:12px">Live, remix, remaster</h3><p class="m" style="margin-top:6px">Will be preserved as separate versions when the duplicate detector is implemented.</p></div></div>
+<div class="card" style="margin-top:14px"><h2>Move engine · planned, not enabled</h2><p class="m">Illustrative transaction phases. No file movement has been implemented.</p>
+<div class="steps"><span>Prepared</span><span>Staged</span><span>Verified</span><span>Published</span><span>Source removed</span><span>Committed</span></div>
+<p class="m">This is the safety design target. Transaction logging, checksum verification and crash recovery must pass TDD before moves can be enabled.</p></div>
+<div class="g2"><div class="card"><h3>Checks</h3><ul class="list"><li><span>Paths and permissions</span><span class="tag rv">Pending</span></li><li><span>Collisions</span><span class="tag rv">Pending</span></li><li><span>Free space</span><span class="tag rv">Pending</span></li></ul></div>
+<div class="card"><h3>Backups</h3><ul class="list"><li><span>Originals kept for</span><span class="tag rv">Not enabled</span></li><li><span>Raw audio sent online</span><span>Only acoustic fingerprints sent for matching</span></li><li><span>Open transactions</span><span class="tag rv">Not enabled</span></li></ul></div></div></section>
+</main>
+<script>
+const esc = value => String(value ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const V=["home","artists","albums","songs","genres","identify","review","safety"];
+const A=[["Adele","Pop"],["The Weeknd","R&B"],["Dua Lipa","Pop"],["Daft Punk","Electronic"],["Nina Simone","Jazz"],["Miles Davis","Jazz"],["Burna Boy","Afrobeats"],["Fela Kuti","Afrobeats"],["Frank Ocean","R&B"]].map((a,i)=>({t:a[0],g:a[1],i,p:0}));
+const B=[["25","Adele",2015,"Pop"],["30","Adele",2021,"Pop"],["After Hours","The Weeknd",2020,"R&B"],["Future Nostalgia","Dua Lipa",2020,"Pop"],["Random Access Memories","Daft Punk",2013,"Electronic"],["Pastel Blues","Nina Simone",1965,"Jazz"],["Kind of Blue","Miles Davis",1959,"Jazz"],["Twice as Tall","Burna Boy",2020,"Afrobeats"],["Zombie","Fela Kuti",1976,"Afrobeats"],["Blonde","Frank Ocean",2016,"R&B"]].map((a,i)=>({t:a[0],a:a[1],y:a[2],g:a[3],i,p:i===1||i===7?1:0}));
+const S=[["Hello","Adele","25",2015,"4:55",0],["Easy On Me","Adele","30",2021,"3:44",1],["Blinding Lights","The Weeknd","After Hours",2020,"3:20",0],["Save Your Tears","The Weeknd","After Hours",2020,"3:35",0],["Levitating","Dua Lipa","Future Nostalgia",2020,"3:23",0],["Don’t Start Now","Dua Lipa","Future Nostalgia",2020,"3:03",0],["Get Lucky","Daft Punk","Random Access Memories",2013,"6:09",0],["Instant Crush","Daft Punk","Random Access Memories",2013,"5:37",0],["Sinnerman","Nina Simone","Pastel Blues",1965,"10:20",0],["So What","Miles Davis","Kind of Blue",1959,"9:22",0],["Zombie","Fela Kuti","Zombie",1976,"12:17",1],["Wonderful","Burna Boy","Twice as Tall",2020,"3:30",0],["Nights","Frank Ocean","Blonde",2016,"5:07",0],["Pink + White","Frank Ocean","Blonde",2016,"3:04",0],["000147.mp3","Unknown artist","",0,"3:41",2],["track_0039.mp3","Unknown artist","",0,"4:12",2]].map((s,i)=>{const b=B.find(x=>x.t===s[2]);return{t:s[0],a:s[1],b:s[2],y:s[3],d:s[4],p:s[5],g:b?b.g:"",i}});
+const ST=[["ok","Tagged · unverified"],["rv","Review"],["un","Unknown"]];
+const O={t:["Title A to Z",(a,b)=>a.t.localeCompare(b.t,undefined,{numeric:true})],z:["Title Z to A",(a,b)=>b.t.localeCompare(a.t,undefined,{numeric:true})],a:["Artist",(a,b)=>(a.a||"").localeCompare(b.a||"")],y:["Year, newest",(a,b)=>b.y-a.y],o:["Year, oldest",(a,b)=>a.y-b.y],n:["Recently added",(a,b)=>b.i-a.i],r:["Needs review first",(a,b)=>b.p-a.p]};
+const SO={artists:["t","z","n"],albums:["t","z","a","y","o","n","r"],songs:["t","z","a","y","o","n","r"]};
+const U={g:"All",q:"",s:{artists:"t",albums:"t",songs:"t"}};
+const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return h};
+const GN=["All",...new Set(B.map(b=>b.g))];
+const f=(l,k)=>l.filter(x=>(U.g==="All"||x.g===U.g)&&(x.t+" "+(x.a||"")+(k?" "+(x.b||""):"")).toLowerCase().includes(U.q.toLowerCase()));
+const srt=(l,v)=>[...l].sort(O[U.s[v]][1]);
+const av=a=>`<a href="#albums" data-g="${esc(a.g)}"><div class="av" style="--h:${hue(a.t)}">${esc(a.t.split(" ").filter(w=>w!=="The").map(w=>w[0]).slice(0,2).join(""))}</div><div><b>${esc(a.t)}</b><div class="m" style="font-size:13px">${esc(a.g)}</div></div></a>`;
+const al=b=>`<div><div class="cv" style="--h:${hue(b.t)}"><i></i></div><b>${esc(b.t)}</b><small>${esc(b.a)}, ${b.y}</small></div>`;
+function draw(){
+const ar=srt(f(A),"artists"),ab=srt(f(B,1),"albums"),so=srt(f(S,1),"songs");
+const unk=U.g==="All"&&!U.q?`<a href="#songs"><div class="av q">?</div><div><b>Unidentified</b><div class="m" style="font-size:13px">2 files, kept as unknown</div></div></a>`:"";
+document.getElementById("lA").innerHTML=ar.map(av).join("")+unk;
+document.getElementById("cA").textContent=ar.length+" artists";
+document.getElementById("lB").innerHTML=ab.map(al).join("")||'<p class="m">No albums match. Clear the search or pick another genre.</p>';
+document.getElementById("cB").textContent=ab.length+" albums";
+document.getElementById("lS").innerHTML=so.map(s=>`<tr><td>${esc(s.t)}</td><td>${esc(s.a)}</td><td>${esc(s.b||"None")}</td><td>${esc(s.g||"None")}</td><td class="n">${s.y||""}</td><td class="n">${s.d}</td><td><span class="tag ${ST[s.p][0]}">${ST[s.p][1]}</span></td></tr>`).join("")||'<tr><td colspan="7" class="m">No songs match. Clear the search or pick another genre.</td></tr>';
+document.getElementById("cS").textContent=so.length+" songs";
+document.querySelectorAll("[data-ch]").forEach(c=>c.innerHTML=GN.map(g=>`<button type="button" class="chip${g===U.g?" on":""}" data-g="${esc(g)}">${esc(g)}</button>`).join(""));
+}
+document.querySelectorAll("[data-s]").forEach(s=>{const v=s.dataset.s;s.innerHTML=SO[v].map(k=>`<option value="${k}">${O[k][0]}</option>`).join("");s.onchange=()=>{U.s[v]=s.value;draw()}});
+document.querySelectorAll("[data-q]").forEach(i=>i.oninput=()=>{U.q=i.value;document.querySelectorAll("[data-q]").forEach(o=>o.value=U.q);draw()});
+document.addEventListener("click",e=>{const c=e.target.closest("[data-g]");if(c&&!c.matches("a")&&!c.closest(".gn")){U.g=c.dataset.g;draw()}});
+const GC={};S.forEach(s=>{if(s.g)GC[s.g]=(GC[s.g]||0)+1});
+document.getElementById("lG").innerHTML=Object.keys(GC).map(g=>`<button type="button" data-gen="${esc(g)}" style="--h:${hue(g)};width:${96+GC[g]*22}px;height:${96+GC[g]*22}px">${esc(g)}<small>${GC[g]} songs</small></button>`).join("");
+document.getElementById("lG").onclick=e=>{const b=e.target.closest("[data-gen]");if(b){U.g=b.dataset.gen;draw();location.hash="albums"}};
+document.getElementById("hA").innerHTML=A.slice(0,6).map(av).join("");
+document.getElementById("hB").innerHTML=[...B].sort(O.n[1]).slice(0,6).map(al).join("");
+document.getElementById("hA").onclick=e=>{const c=e.target.closest("[data-g]");if(c)U.g="All"};
+const R=[["Easy On Me","Album","(empty)","30"],["Easy On Me","Year","(empty)","2021"],["000147.mp3","Title","(empty)","Blinding Lights"],["000147.mp3","Artist","(empty)","The Weeknd"],["track_0039.mp3","Title","Unknown","Save Your Tears"]];
+document.getElementById("rv").innerHTML=R.map(r=>`<tr><td><input type="checkbox" checked aria-label="Apply this change"></td><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td class="m">${esc(r[2])}</td><td><b>${esc(r[3])}</b></td></tr>`).join("");
+const rc=()=>document.getElementById("rc").textContent=document.querySelectorAll("#rv input:checked").length+" of 5 tag changes selected";
+document.getElementById("rv").onchange=rc;rc();
+function route(){let h=location.hash.slice(1);if(!V.includes(h))h="home";
+document.querySelectorAll("[data-v]").forEach(s=>s.classList.toggle("on",s.dataset.v===h));
+document.querySelectorAll("nav a").forEach(a=>a.classList.toggle("on",a.getAttribute("href")==="#"+h));draw()}
+addEventListener("hashchange",route);route();
+document.getElementById("th").onclick=()=>{const r=document.documentElement,d=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;r.dataset.theme=d?"light":"dark"};
+</script>
+<script id="meloshelf-app">
+(() => {
+  const token='__MELOSHELF_TOKEN__';
+  const native=location.protocol==='http:' && ['127.0.0.1','localhost'].includes(location.hostname) && !token.startsWith('__');
+  const $=id=>document.getElementById(id);
+  const safe=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  // Incoming tags and filenames are untrusted. Override rendering from the base design with escaped data.
+  const originalDraw=draw;
+  const state={live:false,offset:0,limit:60,lastCount:0,query:'',timer:null};
+  const toast=message=>{const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(state.timer);state.timer=setTimeout(()=>el.classList.remove('show'),4300)};
+  async function api(path,body){
+    const options=body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json','X-MeloShelf-Token':token},body:JSON.stringify(body)};
+    const response=await fetch(path,options);let value=await response.json();if(!response.ok)throw new Error(value.error||'Request failed');return value;
+  }
+  const dialog=$('scanDialog');$('scanLaunch').onclick=()=>dialog.showModal();$('closeDialog').onclick=()=>dialog.close();$('cancelScan').onclick=()=>dialog.close();
+  $('scanForm').onsubmit=async e=>{
+    e.preventDefault();if(!native)return toast('Open the local MeloShelf application to scan files.');
+    const folder=$('folderPath').value.trim();if(!folder)return toast('Enter a valid local folder path.');
+    try{await api('/api/scan',{folder});dialog.close();toast('Read-only scan started.');poll();}catch(err){toast(err.message)}
+  };
+  $('startRecognize').onclick=async()=>{
+    if(!native)return toast('Start the MeloShelf local application to identify audio.');
+    try{await api('/api/identify',{limit:Number($('batchLimit').value),offline:$('offlineMode').checked});toast('Recognition started. No file will be changed.');poll();}
+    catch(err){toast(err.message)}
+  };
+  $('stopTask').onclick=async()=>{try{await api('/api/stop',{});toast('Stop requested.')}catch(err){toast(err.message)}};
+  $('pagePrev').onclick=()=>{state.offset=Math.max(0,state.offset-state.limit);refreshLibrary()};
+  $('pageNext').onclick=()=>{state.offset+=state.limit;refreshLibrary()};
+  $('postponeDemo').onclick=()=>toast('No files were changed. Decisions are only proposals in this phase.');
+  const renderMatches=matches=>{
+    $('matchesCount').textContent=`${matches.length} saved result${matches.length===1?'':'s'}`;
+    $('matchesList').innerHTML=matches.length?matches.map(m=>{
+      const c=m.candidates?.[0];const subtitle=c?`${safe(c.title||'Unknown title')} · ${safe(c.artist||'Unknown artist')}`:'No reference match';
+      const variants=c?.releases?.length?`${c.releases.length} release option${c.releases.length>1?'s':''}: ${safe(c.releases.slice(0,3).join(', '))}`:'Album edition unresolved';
+      return `<div class="match-row"><div class="match-avatar">♫</div><div><strong>${safe(m.path.split(/[\\/]/).pop())}</strong><small>${subtitle}<br>${variants} · ${safe(m.reason||m.status)} · ${safe(m.decision)}</small></div><div class="match-actions">${m.candidates?.length?`<select aria-label="Choose recording" class="candidate-picker">${m.candidates.map(x=>`<option value="${safe(x.recording_id)}" ${m.selected_recording_id===x.recording_id?'selected':''}>${safe(x.title||'Unknown')} · ${safe(x.artist||'Unknown')}</option>`).join('')}</select><button class="mini-btn" data-review="accepted" data-path="${safe(m.path)}">Accept recording</button>`:''}<button class="mini-btn" data-review="rejected" data-path="${safe(m.path)}">Reject</button></div></div>`
+    }).join(''):'<div class="empty-work"><span>◎</span><h3>Nothing to review yet</h3><p class="m">Start a local scan and fingerprint analysis.</p></div>';
+  };
+  $('matchesList').onclick=async e=>{
+    const btn=e.target.closest('button[data-review]');if(!btn)return;
+    const matchPath=btn.dataset.path;const decision=btn.dataset.review;
+    const recording_id=decision==='accepted'?btn.closest('.match-row').querySelector('.candidate-picker')?.value||'':'';
+    try{await api('/api/decision',{path:matchPath,decision,recording_id});toast('Review decision saved. Audio files unchanged.');loadMatches();}catch(err){toast(err.message)}
+  };
+  async function loadMatches(){if(!native)return;try{
+    const matches=(await api('/api/matches')).matches||[];renderMatches(matches);
+    $('rv').innerHTML=matches.length?matches.map(m=>{
+      const best=m.candidates?.[0];return `<tr><td>♫</td><td>${safe(m.path.split(/[\\/]/).pop())}</td><td>Recording</td><td class="m">${safe(m.status)}</td><td><b>${safe(best?best.title+' — '+best.artist:'Unmatched')}</b><span class="m"> · ${safe(m.decision)} · album not automatically chosen</span></td></tr>`;
+    }).join(''):'<tr><td colspan="5" class="m">No review proposals yet. Run recognition first.</td></tr>';
+    $('rc').textContent=`${matches.length} recorded proposal${matches.length===1?'':'s'} · changes disabled`;
+  }catch(err){toast(err.message)}}
+  function updateStats(stats){
+    const labels=['Indexed','Tags present · unverified','Incomplete tags','Unidentified'];
+    const nums=[stats.total,stats.tagged,stats.review,stats.unidentified];
+    document.querySelectorAll('.st').forEach((box,i)=>{
+      box.querySelector('strong').textContent=(nums[i]||0).toLocaleString();box.querySelector('small').textContent=labels[i];
+      box.querySelector('.bar i').style.width=(stats.total?Math.round((nums[i]||0)/stats.total*100):0)+'%';
+    });
+  }
+  async function refreshLibrary(){
+    if(!native)return;
+    try{
+      const [stats,data]=await Promise.all([api('/api/stats'),api(`/api/tracks?limit=${state.limit}&offset=${state.offset}&q=${encodeURIComponent(state.query)}`)]);
+      updateStats(stats);state.lastCount=data.tracks.length;
+      S.splice(0,S.length,...data.tracks.map((t,i)=>({t:t.title||t.path.split(/[\\/]/).pop(),a:t.artist||'Unknown artist',b:t.album||'',y:Number.parseInt(t.year,10)||0,d:'—',p:t.status==='tagged'?0:t.status==='review'?1:2,g:'',i:i,filename:t.path})));
+      const artistNames=[...new Set(data.tracks.map(t=>t.artist).filter(Boolean))];
+      A.splice(0,A.length,...artistNames.map((t,i)=>({t,g:'Uncategorized',i,p:0})));
+      const releases=[...new Map(data.tracks.filter(t=>t.album).map((t,i)=>[`${t.artist}::${t.album}`,{t:t.album,a:t.artist||'Unknown artist',y:Number.parseInt(t.year,10)||0,g:'Uncategorized',i,p:0}])).values()];
+      B.splice(0,B.length,...releases);
+      GN.splice(0,GN.length,'All','Uncategorized');U.g='All';U.q='';
+      document.querySelectorAll('[data-q]').forEach(el=>el.value=state.query);
+      // Temporarily disable client-side text filtering: the server already paginated its search.
+      originalDraw();
+      $('pageCaption').textContent=`Live library · ${state.offset+1}–${state.offset+data.tracks.length} of ${stats.total.toLocaleString()} indexed (search may narrow results)`;
+      $('pagePrev').disabled=state.offset===0;$('pageNext').disabled=data.tracks.length<state.limit;
+      $('mode-pill').textContent='LOCAL LIBRARY · READ ONLY';$('source-path').textContent='Indexed from this computer';
+      // Rebuild the songs table with escaped dynamic values to protect against malicious tags.
+      $('lS').innerHTML=S.map(song=>`<tr><td>${safe(song.t)}</td><td>${safe(song.a)}</td><td>${safe(song.b||'None')}</td><td>${safe(song.g||'—')}</td><td>${safe(song.y||'')}</td><td>${safe(song.d)}</td><td><span class="tag ${ST[song.p][0]}">${safe(ST[song.p][1])}</span></td></tr>`).join('')||'<tr><td colspan="7" class="m">No audio files found in this page.</td></tr>';
+      // The rest of the demo renderer uses strings from the same library. Replace HTML with safely escaped text.
+      for(const id of ['lA','hA','lB','hB']){const element=$(id);if(element){element.querySelectorAll('b,small').forEach(n=>{const plain=n.textContent;n.textContent=plain})}}
+    }catch(err){toast(err.message)}
+  }
+  const qInputs=document.querySelectorAll('[data-q]');
+  for(const el of qInputs){el.addEventListener('input',()=>{
+    if(!state.live)return;
+    state.query=el.value;state.offset=0;clearTimeout(state._searchTimer);state._searchTimer=setTimeout(refreshLibrary,220);
+  });}
+  async function poll(){
+    if(!native)return;
+    try{
+      const status=await api('/api/status');$('operationTitle').textContent=status.running?`${status.kind==='scan'?'Indexing':'Recognizing'} your collection…`:'MeloShelf is ready';
+      $('operationMessage').textContent=status.message;$('stopTask').hidden=!status.running;
+      if(!status.running){refreshLibrary();loadMatches();}
+    }catch(_err){}
+  }
+  if(native){
+    state.live=true;
+    $('scanHint').textContent='Files are only read locally. Nothing is renamed, edited, moved or deleted.';
+    $('recognizeConfig').textContent='Checking recognition settings…';
+    api('/api/config').then(config=>{$('recognizeConfig').textContent=config.acoustid_configured?'AcoustID configured · review only':'AcoustID key missing · offline cache available';}).catch(()=>{});
+    refreshLibrary();loadMatches();poll();setInterval(async()=>{
+      const wasRunning=$('stopTask').hidden===false;
+      await poll();
+      // Keep current UI responsive even for long scans.
+    },3200);
+  }else{$('recognizeConfig').textContent='Preview only · local app required';$('operationTitle').textContent='A preview of your future library';$('operationMessage').textContent='Sample tracks and visualizations · no audio file is accessed by this HTML preview.'}
+})();
+</script>
+</body>
+</html>
