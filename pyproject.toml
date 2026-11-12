@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=69", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,6 +7,9 @@ name = "meloshelf"
 version = "0.2.0"
 description = "Local-first cross-platform music library organizer with acoustic recognition and review"
 readme = "README.md"
+license = "GPL-2.0-or-later"
+license-files = ["LICENSE"]
+authors = [{ name = "Joy Daniel" }]
 requires-python = ">=3.11"
 dependencies = ["mutagen>=1.47,<2", "keyring>=25,<26"]  # MIT: secure storage in the OS credential store
 

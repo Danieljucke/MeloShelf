@@ -4,6 +4,7 @@ VSVersionInfo(
     StringFileInfo([StringTable('040904B0', [
       StringStruct('CompanyName', 'MeloShelf'),
       StringStruct('FileDescription', 'MeloShelf - local-first music organizer'),
+      StringStruct('LegalCopyright', 'Copyright (C) 2026 Joy Daniel. Licensed under GPL-2.0-or-later. The MeloShelf name and logo are branding of the author.'),
       StringStruct('FileVersion', '0.2.0.0'),
       StringStruct('InternalName', 'MeloShelf'),
       StringStruct('OriginalFilename', 'MeloShelf.exe'),

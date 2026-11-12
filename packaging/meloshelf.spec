@@ -6,7 +6,7 @@ web = '../src/meloshelf/presentation/web'
 datas = [(web + '/index.html', 'meloshelf/presentation/web'),
          (web + '/brand', 'meloshelf/presentation/web/brand'),
          (web + '/i18n', 'meloshelf/presentation/web/i18n')]
-datas += [('../THIRD_PARTY_NOTICES.md', 'licenses')]
+datas += [('../THIRD_PARTY_NOTICES.md', 'licenses'), ('../LICENSE', 'licenses')]
 datas += copy_metadata('keyring') + copy_metadata('mutagen')
 hidden = collect_submodules('keyring.backends') + ['win32ctypes.pywin32.pywintypes', 'win32ctypes.pywin32.win32cred']
 

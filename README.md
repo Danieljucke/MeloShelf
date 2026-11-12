@@ -40,12 +40,19 @@ It runs on your own computer. The interface opens in your web browser and is ser
 
 **Supported platform:** Windows 10 or 11, 64-bit. macOS and Linux have not been tested.
 
-**Windows installer.** A per-user installer (no administrator rights, no Python needed) and a portable ZIP can be built
-from this repository with `packaging\build.ps1` (see [Build from source](#build-from-source)). Ready-made binaries are not
-published yet. The project does not have a licence yet, and the build contains a GPL component (see
-[License and third-party acknowledgements](#license-and-third-party-acknowledgements)), so binaries will be released
-once that is settled. The installer is not code-signed, so Windows SmartScreen will show a warning the first time it is run.
-Choose **More info**, then **Run anyway**.
+**Windows installer.** Download `MeloShelf-0.2.0-Setup.exe` (a per-user installer with no administrator rights and no
+Python needed) or `MeloShelf-0.2.0-portable-win64.zip` (unzip and run `MeloShelf\MeloShelf.exe`) from the
+[v0.2.0 release](https://github.com/Danieljucke/MeloShelf/releases/tag/v0.2.0). Check the download against `SHA256SUMS.txt`
+from the same release:
+
+```powershell
+Get-FileHash .\MeloShelf-0.2.0-Setup.exe -Algorithm SHA256
+```
+
+The installer is not code-signed, so Windows SmartScreen will show a warning the first time it is run. Choose **More info**,
+then **Run anyway**. The exact source for these binaries is the tag
+[v0.2.0](https://github.com/Danieljucke/MeloShelf/tree/v0.2.0) of this repository, and `packaging\build.ps1` rebuilds them
+(see [Build from source](#build-from-source)).
 
 **From source.** You need Python 3.11 or newer.
 
@@ -285,13 +292,23 @@ Commits follow Conventional Commits, and the branches are `main`, `dev`, `test`,
 
 ## License and third-party acknowledgements
 
-**MeloShelf does not have a licence yet.** Until the author adds one, all rights are reserved.
+MeloShelf's original source code is free software under the **GNU General Public License, version 2 or (at your option) any
+later version** (GPL-2.0-or-later). The full text is in [LICENSE](LICENSE). The program comes with no warranty, as the licence
+explains.
 
-The Windows build bundles `mutagen`, which is licensed under GPL-2.0-or-later. Distributing a build to other people
-therefore requires complying with the GPL, and that is why prebuilt binaries are not published yet. Other components:
-Python (PSF License), keyring and Lucide icons (MIT and ISC), and the PyInstaller bootloader (GPL-2.0-or-later with the
-PyInstaller exception). Licence texts and versions are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Chromaprint is
-not included.
+Copyright (C) 2026 Joy Daniel.
+
+**Name and logo.** The names "MeloShelf" and "MeloShelf Soundwave", the logo and the screenshots in `Assets/` are the author's
+branding. The software licence does not grant any right to use them, and no trademark licence is given. You may use the name
+to refer to this project truthfully (for example to say that a fork is based on MeloShelf), but a modified version should
+not present itself as the official MeloShelf or reuse the logo.
+
+**Windows binaries and source.** The installer and the portable ZIP bundle `mutagen` (GPL-2.0-or-later) and other components
+listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), each under its own licence. The corresponding source for the
+exact binaries is the tag [v0.2.0](https://github.com/Danieljucke/MeloShelf/tree/v0.2.0), together with the build script in
+`packaging/` and the dependency versions in the notices. The licence texts are included in the application's `licenses` folder and in the
+`dist-info` folders next to the executable.
 
 Data and images come from AcoustID, MusicBrainz, the Cover Art Archive, Wikimedia Commons and, optionally, Fanart.tv and
-TheAudioDB. Each remains subject to its own terms. The interface icons are from [Lucide](https://lucide.dev).
+TheAudioDB. Each remains subject to its own terms. The interface icons are from [Lucide](https://lucide.dev). Chromaprint is
+not included.

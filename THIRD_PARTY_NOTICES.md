@@ -58,7 +58,7 @@ SOFTWARE.
 ## MeloShelf Soundwave icon
 
 The logo and favicon are the **MeloShelf Soundwave** icon: two flowing rose acoustic waves on a deep plum rounded-square
-tile. It is the project's own brand asset and not a third-party work. `Assets/MeloShelf-logo.svg` is the editable vector with a
+tile. It is the project's own brand asset and not a third-party work; the name and the logo are the author's branding and are not licensed under the GPL. `Assets/MeloShelf-logo.svg` is the editable vector with a
 transparent background (the original square backdrop behind the rounded tile was removed; the artwork is unchanged). The
 same file is kept at `src/meloshelf/presentation/web/brand/MeloShelf-Soundwave.svg` and the Windows icon is generated from it.
 The vector is a hand-recreated version of the original generated image that preserves its design language and is not
@@ -80,9 +80,12 @@ The standalone `MeloShelf.exe` bundles these components. Each keeps its own lice
 | jaraco.classes / jaraco.functools / jaraco.context, more-itertools | see dist-info | MIT |
 | PyInstaller bootloader (packaging tool) | 6.22.3 | GPL-2.0-or-later with the PyInstaller exception for distributed programs |
 
-**Note on mutagen:** because the build bundles mutagen (GPL-2.0-or-later), giving the build to other people requires
-complying with the GPL for the combined work, including offering the corresponding source. MeloShelf has not chosen a licence
-of its own yet; the build is intended for personal use until that is decided.
+**Note on mutagen and the GPL:** the build bundles mutagen (GPL-2.0-or-later). MeloShelf's own source code is licensed
+under GPL-2.0-or-later (see `LICENSE`), so the combined work is distributed under the GPL. The corresponding source of the
+MeloShelf code is the Git tag `v0.2.0` at https://github.com/Danieljucke/MeloShelf. The source of the bundled third-party
+components is available from their upstream projects at the versions listed above (for example
+https://pypi.org/project/mutagen/1.48.1/#files for mutagen, https://pypi.org/project/keyring/25.7.0/#files for keyring and
+https://pypi.org/project/pyinstaller/6.22.3/#files for PyInstaller). Python 3.13 source is at https://www.python.org/downloads/.
 
 **Chromaprint / fpcalc is not included.** Its licence is layered (the project's own code is MIT, it contains parts of FFmpeg
 under LGPL-2.1, and binaries must also respect the licence of the FFT library they were built with), and no redistributable,
