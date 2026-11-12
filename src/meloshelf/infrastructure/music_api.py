@@ -61,6 +61,10 @@ class RateLimiter:
         self.sleeper = sleeper
         self._next = None
         self._lock = Lock()
+        # Reservations can be made without holding the state lock while sleeping,
+        # but dispatch itself must stay ordered. Otherwise a thread whose earlier
+        # slot wakes late can fire immediately beside a later reservation.
+        self._dispatch_lock = Lock()
 
     def reserve(self) -> float:
         """Book the next free slot and return how long the caller must wait for it."""
@@ -78,11 +82,12 @@ class RateLimiter:
                 self._next = earliest
 
     def wait(self, should_cancel: Callable[[], bool] | None = None) -> None:
-        delay = self.reserve()  # the lock is released before sleeping
-        if delay > 0:
-            self.sleeper(delay)
-        if should_cancel and should_cancel():
-            raise OperationCancelled('Cancelled while waiting for the rate limit')
+        with self._dispatch_lock:
+            delay = self.reserve()  # the state lock is released before sleeping
+            if delay > 0:
+                self.sleeper(delay)
+            if should_cancel and should_cancel():
+                raise OperationCancelled('Cancelled while waiting for the rate limit')
 
 
 _PROVIDER_INTERVALS = {'acoustid': 1 / 3, 'musicbrainz': 1.1}
