@@ -82,7 +82,7 @@ The standalone `MeloShelf.exe` bundles these components. Each keeps its own lice
 
 **Note on mutagen and the GPL:** the build bundles mutagen (GPL-2.0-or-later). MeloShelf's own source code is licensed
 under GPL-2.0-or-later (see `LICENSE`), so the combined work is distributed under the GPL. The corresponding source of the
-MeloShelf code is the Git tag `v0.2.0` at https://github.com/Danieljucke/MeloShelf. The source of the bundled third-party
+MeloShelf code is the Git tag `v0.2.1` at https://github.com/Danieljucke/MeloShelf. The source of the bundled third-party
 components is available from their upstream projects at the versions listed above (for example
 https://pypi.org/project/mutagen/1.48.1/#files for mutagen, https://pypi.org/project/keyring/25.7.0/#files for keyring and
 https://pypi.org/project/pyinstaller/6.22.3/#files for PyInstaller). Python 3.13 source is at https://www.python.org/downloads/.

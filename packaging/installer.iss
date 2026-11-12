@@ -7,7 +7,7 @@
 #ifndef OutDir
   #define OutDir "..\installer"
 #endif
-#define AppVersion "0.2.0"
+#define AppVersion "0.2.1"
 
 [Setup]
 AppId={{6B1F0B7E-5C0A-4C8B-9F38-6D4E0A7A3E21}
@@ -28,7 +28,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayIcon={app}\MeloShelf.exe
 SetupIconFile=MeloShelf.ico
-VersionInfoVersion=0.2.0.0
+VersionInfoVersion=0.2.1.0
 VersionInfoProductName=MeloShelf
 DisableProgramGroupPage=yes
 WizardStyle=modern

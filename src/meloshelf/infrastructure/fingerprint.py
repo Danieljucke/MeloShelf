@@ -2,9 +2,24 @@
 import json
 import shutil
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
+
+
+_CREATE_NO_WINDOW = 0x08000000
+
+
+def no_console_options(platform: str = sys.platform) -> dict:
+    """Extra ``subprocess`` keywords that stop a console program from opening a black window on Windows.
+
+    ``CREATE_NO_WINDOW`` gives the child no console at all, so nothing flashes and focus stays where it was; its output
+    pipes are unaffected. Other platforms get nothing, so their behaviour is unchanged.
+    """
+    if platform == 'win32':
+        return {'creationflags': getattr(subprocess, 'CREATE_NO_WINDOW', _CREATE_NO_WINDOW)}
+    return {}
 
 
 class FingerprintError(RuntimeError):
@@ -60,8 +75,9 @@ class Fingerprint:
 
 class Fingerprinter:
     def __init__(self, *, executable: str = 'fpcalc', runner: Callable = subprocess.run, timeout: int = 240,
-                 which: Callable = shutil.which):
+                 which: Callable = shutil.which, platform: str = sys.platform):
         self.executable = executable
+        self._platform = platform
         self.runner = runner
         self.timeout = timeout
         self._which = which
@@ -75,7 +91,7 @@ class Fingerprinter:
             raise FingerprintError('Audio file does not exist')
         try:
             result = self.runner([self.executable, '-json', str(path)], capture_output=True, text=True,
-                                 timeout=self.timeout, check=False)
+                                 timeout=self.timeout, check=False, **no_console_options(self._platform))
         except (FileNotFoundError, PermissionError) as exc:
             raise FingerprintUnavailable(f'fpcalc failed: {type(exc).__name__}: "{self.executable}" cannot be started') from exc
         except (OSError, subprocess.TimeoutExpired) as exc:

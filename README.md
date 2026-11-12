@@ -40,18 +40,18 @@ It runs on your own computer. The interface opens in your web browser and is ser
 
 **Supported platform:** Windows 10 or 11, 64-bit. macOS and Linux have not been tested.
 
-**Windows installer.** Download `MeloShelf-0.2.0-Setup.exe` (a per-user installer with no administrator rights and no
-Python needed) or `MeloShelf-0.2.0-portable-win64.zip` (unzip and run `MeloShelf\MeloShelf.exe`) from the
-[v0.2.0 release](https://github.com/Danieljucke/MeloShelf/releases/tag/v0.2.0). Check the download against `SHA256SUMS.txt`
+**Windows installer.** Download `MeloShelf-0.2.1-Setup.exe` (a per-user installer with no administrator rights and no
+Python needed) or `MeloShelf-0.2.1-portable-win64.zip` (unzip and run `MeloShelf\MeloShelf.exe`) from the
+[v0.2.1 release](https://github.com/Danieljucke/MeloShelf/releases/tag/v0.2.1). Check the download against `SHA256SUMS.txt`
 from the same release:
 
 ```powershell
-Get-FileHash .\MeloShelf-0.2.0-Setup.exe -Algorithm SHA256
+Get-FileHash .\MeloShelf-0.2.1-Setup.exe -Algorithm SHA256
 ```
 
 The installer is not code-signed, so Windows SmartScreen will show a warning the first time it is run. Choose **More info**,
 then **Run anyway**. The exact source for these binaries is the tag
-[v0.2.0](https://github.com/Danieljucke/MeloShelf/tree/v0.2.0) of this repository, and `packaging\build.ps1` rebuilds them
+[v0.2.1](https://github.com/Danieljucke/MeloShelf/tree/v0.2.1) of this repository, and `packaging\build.ps1` rebuilds them
 (see [Build from source](#build-from-source)).
 
 **From source.** You need Python 3.11 or newer.
@@ -305,7 +305,7 @@ not present itself as the official MeloShelf or reuse the logo.
 
 **Windows binaries and source.** The installer and the portable ZIP bundle `mutagen` (GPL-2.0-or-later) and other components
 listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), each under its own licence. The corresponding source for the
-exact binaries is the tag [v0.2.0](https://github.com/Danieljucke/MeloShelf/tree/v0.2.0), together with the build script in
+exact binaries is the tag [v0.2.1](https://github.com/Danieljucke/MeloShelf/tree/v0.2.1), together with the build script in
 `packaging/` and the dependency versions in the notices. The licence texts are included in the application's `licenses` folder and in the
 `dist-info` folders next to the executable.
 

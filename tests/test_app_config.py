@@ -38,10 +38,10 @@ def test_missing_key_is_reported_as_none(tmp_path):
 
 
 def test_contact_precedence_is_stored_then_environment(tmp_path):
-    settings = config(tmp_path, env={'MELOSHELF_MUSICBRAINZ_USER_AGENT': 'MeloShelf/0.2.0 (env@example.org)'})
-    assert settings.musicbrainz_user_agent() == ('MeloShelf/0.2.0 (env@example.org)', 'environment')
+    settings = config(tmp_path, env={'MELOSHELF_MUSICBRAINZ_USER_AGENT': 'MeloShelf/0.2.1 (env@example.org)'})
+    assert settings.musicbrainz_user_agent() == ('MeloShelf/0.2.1 (env@example.org)', 'environment')
     settings.set_musicbrainz_contact('ana@example.org')
-    assert settings.musicbrainz_user_agent() == ('MeloShelf/0.2.0 (ana@example.org)', 'settings')
+    assert settings.musicbrainz_user_agent() == ('MeloShelf/0.2.1 (ana@example.org)', 'settings')
 
 
 def test_fpcalc_setting_then_environment_then_path(tmp_path):
@@ -105,7 +105,7 @@ def test_fpcalc_path_must_exist(tmp_path):
 # ── summary and diagnostics never expose secrets ─────────────────────────────
 
 def test_summary_reports_status_and_sources_without_values(tmp_path):
-    settings = config(tmp_path, env={'MELOSHELF_MUSICBRAINZ_USER_AGENT': 'MeloShelf/0.2.0 (ops@example.org)'})
+    settings = config(tmp_path, env={'MELOSHELF_MUSICBRAINZ_USER_AGENT': 'MeloShelf/0.2.1 (ops@example.org)'})
     settings.set_acoustid_key(KEY)
     summary = settings.summary()
     assert summary['acoustid'] == {'configured': True, 'source': 'secure store'}
@@ -131,7 +131,7 @@ def test_a_project_url_is_an_accepted_musicbrainz_contact(tmp_path, good):
     # MusicBrainz accepts a contact URL or an email address; a project page is a valid, non-personal contact.
     settings = config(tmp_path)
     settings.set_musicbrainz_contact(good)
-    assert settings.musicbrainz_user_agent() == (f'MeloShelf/0.2.0 ({good})', 'settings')
+    assert settings.musicbrainz_user_agent() == (f'MeloShelf/0.2.1 ({good})', 'settings')
 
 
 @pytest.mark.parametrize('bad', ['ftp://example.org', 'https://', 'javascript:alert(1)', 'https://exa mple.org'])

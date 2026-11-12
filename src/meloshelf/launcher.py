@@ -108,7 +108,7 @@ def main(argv=None) -> int:
         return 2
     url = f'http://127.0.0.1:{server.server_address[1]}/'
     state.write_text(json.dumps({'url': url, 'pid': os.getpid()}), encoding='utf-8')
-    print('MeloShelf 0.2.0 - local interface:', url, flush=True)
+    print('MeloShelf 0.2.1 - local interface:', url, flush=True)
     print(STARTUP_NOTICE, flush=True)
     for line in startup_diagnostics(server.config):
         print(line, flush=True)

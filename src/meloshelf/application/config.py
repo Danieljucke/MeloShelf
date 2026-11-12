@@ -11,10 +11,11 @@ responses report presence and source, never values.
 import re
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 from meloshelf.infrastructure import log_redaction
-from meloshelf.infrastructure.fingerprint import FpcalcLocation, locate_fpcalc
+from meloshelf.infrastructure.fingerprint import FpcalcLocation, locate_fpcalc, no_console_options
 from meloshelf.infrastructure.secrets import SecretStoreError
 
 ACOUSTID_KEY_NAME = 'acoustid-application-key'
@@ -31,7 +32,7 @@ ART_KEYS = {'fanart_project_key': ('fanart-project-key', 'MELOSHELF_FANART_PROJE
 ART_SOURCE_NAMES = ('fanart', 'theaudiodb')
 _KEY_PATTERN = re.compile(r'^[A-Za-z0-9_-]{8,128}$')
 _CONTACT_PATTERN = re.compile(r'^[^@\s]{1,64}@[^@\s]+\.[^@\s]+$')
-APP_VERSION = '0.2.0'
+APP_VERSION = '0.2.1'
 
 
 def _is_web_url(value: str) -> bool:
@@ -215,10 +216,11 @@ def conventional_fpcalc_dirs(env=None) -> list[str]:
     return folders
 
 
-def check_fpcalc(path: str) -> bool:
+def check_fpcalc(path: str, *, runner=subprocess.run, platform: str = sys.platform) -> bool:
     """True when the executable starts and reports a version."""
     try:
-        result = subprocess.run([path, '-version'], capture_output=True, text=True, timeout=15, check=False)
+        result = runner([path, '-version'], capture_output=True, text=True, timeout=15, check=False,
+                        **no_console_options(platform))
     except (OSError, subprocess.SubprocessError):
         return False
     return result.returncode == 0 and 'fpcalc' in (result.stdout + result.stderr).lower()

@@ -41,7 +41,7 @@ def main(argv=None):
         print(f'MeloShelf cannot open its library database: {exc}',file=sys.stderr)
         return 2
     url=f'http://127.0.0.1:{server.server_address[1]}/'
-    print(f'MeloShelf 0.2.0 · local interface: {url}',flush=True)
+    print(f'MeloShelf 0.2.1 · local interface: {url}',flush=True)
     print(STARTUP_NOTICE,flush=True)
     from meloshelf.application.config import startup_diagnostics
     for line in startup_diagnostics(server.config):
