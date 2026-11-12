@@ -8,7 +8,7 @@ version = "0.2.0"
 description = "Local-first cross-platform music library organizer with acoustic recognition and review"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["mutagen>=1.47,<2"]
+dependencies = ["mutagen>=1.47,<2", "keyring>=25,<26"]  # MIT: secure storage in the OS credential store
 
 [project.optional-dependencies]
 desktop = ["PySide6>=6.8,<7", "PySide6-Addons>=6.8,<7"]

@@ -281,7 +281,10 @@ def test_failed_transaction_rolls_back_and_releases_the_writer(tmp_path):
     repo = LibraryRepository(database)
     with pytest.raises(RuntimeError):
         with database.write() as connection:
-            connection.execute("INSERT INTO tracks VALUES('/x.mp3',1,'.mp3',1,'t','a','b','','tagged')")
+            # Columns are named: this test is about rollback, not about the table's column order, which later
+            # migrations (track numbers) extend.
+            connection.execute("INSERT INTO tracks(path,size,extension,mtime_ns,title,artist,album,year,status) "
+                               "VALUES('/x.mp3',1,'.mp3',1,'t','a','b','','tagged')")
             raise RuntimeError('simulated crash mid-transaction')
     assert repo.counts()['total'] == 0, 'partial write must be rolled back'
     with pytest.raises(sqlite3.IntegrityError):

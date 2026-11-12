@@ -9,6 +9,8 @@ import webbrowser
 
 from meloshelf.application.webapp import create_server
 
+STARTUP_NOTICE = 'Files are moved only after you confirm; each one is verified at its destination before its original is removed.'
+
 
 def launch_native(url: str):
     from PySide6.QtCore import QUrl
@@ -40,7 +42,10 @@ def main(argv=None):
         return 2
     url=f'http://127.0.0.1:{server.server_address[1]}/'
     print(f'MeloShelf 0.2.0 · local interface: {url}',flush=True)
-    print('Phase 2: audio files are strictly READ-ONLY; tagging, renaming, moving and deleting are disabled.',flush=True)
+    print(STARTUP_NOTICE,flush=True)
+    from meloshelf.application.config import startup_diagnostics
+    for line in startup_diagnostics(server.config):
+        print(line,flush=True)
     if args.desktop:
         t=threading.Thread(target=server.serve_forever,daemon=True)
         t.start()

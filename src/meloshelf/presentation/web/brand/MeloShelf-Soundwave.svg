@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="1160" viewBox="37 46 1160 1160" role="img" aria-labelledby="title desc">
+  <title id="title">MeloShelf Soundwave</title>
+  <desc id="desc">Dark plum rounded-square badge with two soft rose flowing soundwaves, on a transparent background.</desc>
+  <defs>
+    <radialGradient id="tile" cx="31%" cy="18%" r="102%">
+      <stop offset="0" stop-color="#411d2b"/><stop offset=".48" stop-color="#2b101c"/><stop offset="1" stop-color="#210b17"/>
+    </radialGradient>
+    <linearGradient id="rim" x1=".1" y1=".01" x2=".85" y2=".98">
+      <stop offset="0" stop-color="#f77b9b"/><stop offset=".25" stop-color="#b73459"/><stop offset=".59" stop-color="#6a2c43"/><stop offset=".88" stop-color="#f3688c"/><stop offset="1" stop-color="#ae2e51"/>
+    </linearGradient>
+    <linearGradient id="topWave" x1=".15" y1=".12" x2=".92" y2=".95">
+      <stop offset="0" stop-color="#ff7194"/><stop offset=".4" stop-color="#f04e78"/><stop offset=".8" stop-color="#db315f"/><stop offset="1" stop-color="#e54d76"/>
+    </linearGradient>
+    <linearGradient id="bottomWave" x1=".04" y1=".05" x2=".96" y2=".93">
+      <stop offset="0" stop-color="#b64b73"/><stop offset=".35" stop-color="#f49ab5"/><stop offset=".65" stop-color="#ffc0ce"/><stop offset="1" stop-color="#f39ab5"/>
+    </linearGradient>
+    <linearGradient id="lightTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff1ee" stop-opacity=".56"/><stop offset="1" stop-color="#fff1ee" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="waveShadow" x="-20%" y="-40%" width="140%" height="190%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="14" result="blur"/>
+      <feOffset dx="0" dy="14" result="offset"/>
+      <feComponentTransfer in="offset" result="shadow"><feFuncA type="linear" slope=".34"/></feComponentTransfer>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="rimGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+  </defs>
+  <path d="M 397,88 C 202,88 83,207 83,407 L 83,860 C 83,1061 200,1164 397,1164 L 866,1164 C 1052,1164 1151,1063 1151,866 L 1151,390 C 1151,192 1030,88 845,88 Z" fill="#e63c69" opacity=".14" filter="url(#rimGlow)"/>
+  <path d="M 397,88 C 202,88 83,207 83,407 L 83,860 C 83,1061 200,1164 397,1164 L 866,1164 C 1052,1164 1151,1063 1151,866 L 1151,390 C 1151,192 1030,88 845,88 Z" fill="url(#tile)" stroke="url(#rim)" stroke-width="7"/>
+  <path d="M 396,96 C 213,96 91,220 91,405" fill="none" stroke="#ff819e" stroke-opacity=".42" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 397,1156 L 860,1156 C 1014,1156 1136,1053 1143,887" fill="none" stroke="#f66c8b" stroke-opacity=".45" stroke-width="3" stroke-linecap="round"/>
+  <g filter="url(#waveShadow)">
+    <path id="soundwave-upper" d="M 168,652 C 222,588 265,551 309,554 C 365,552 401,610 431,640 C 473,680 496,633 534,570 C 582,488 644,391 697,391 C 761,386 804,460 845,512 C 897,576 952,645 1017,627 C 1038,622 1058,611 1072,602 C 1012,666 973,672 935,638 C 866,579 817,493 750,489 C 684,484 640,545 588,620 C 537,692 499,732 449,712 C 400,693 364,602 307,605 C 257,600 214,625 168,652 Z" fill="url(#topWave)"/>
+    <path id="soundwave-lower" d="M 340,706 C 381,757 427,811 473,800 C 527,787 566,700 625,644 C 680,592 711,588 748,592 C 821,602 861,703 925,735 C 973,759 1018,738 1063,697 C 1020,759 976,788 934,781 C 858,770 816,667 755,661 C 684,646 639,744 590,815 C 548,872 510,886 474,873 C 421,857 381,757 340,706 Z" fill="url(#bottomWave)"/>
+  </g>
+  <path d="M 570,526 C 617,455 655,397 699,396 C 753,390 793,458 830,499" fill="none" stroke="url(#lightTop)" stroke-width="2.5" stroke-opacity=".43" stroke-linecap="round"/>
+  <path d="M 652,622 C 690,591 721,591 748,597 C 813,610 861,711 924,738" fill="none" stroke="#fff0ef" stroke-width="2" stroke-opacity=".45" stroke-linecap="round"/>
+</svg>

@@ -21,3 +21,10 @@ htmlcov/
 design-preview/
 docs/legacy-qt/
 docs/TDD_*.md
+
+# Development-only material
+docs/
+Assets/Icons/
+CHECKPOINT.md
+development-state.json
+*.log
