@@ -62,7 +62,13 @@ def test_a_malformed_response_is_an_error_not_an_empty_success():
 
 def test_the_shared_rate_limiter_is_applied_before_every_search():
     waits = []
-    limiter = RateLimiter(1.1, clock=lambda: 0.0, sleeper=lambda s: waits.append(s))
+    now = [0.0]
+
+    def sleep(seconds):
+        waits.append(seconds)
+        now[0] += seconds
+
+    limiter = RateLimiter(1.1, clock=lambda: now[0], sleeper=sleep)
     transport = Recorder()
     cli = MusicBrainzClient(UA, transport=transport, limiter=limiter, retry=RetryPolicy(max_attempts=1))
     cli.search_recordings('a', 'b')

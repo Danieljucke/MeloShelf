@@ -33,9 +33,9 @@ class CountingLimiter(RateLimiter):
         super().__init__(0)
         self.waits = 0
 
-    def wait(self, should_cancel=None):
+    def dispatch(self, action, should_cancel=None):
         self.waits += 1
-        super().wait(should_cancel)
+        return super().dispatch(action, should_cancel)
 
 
 def build_library(tmp_path):

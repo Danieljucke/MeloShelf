@@ -225,8 +225,9 @@ def test_every_attempt_including_retries_passes_through_the_limiter():
     waits = []
 
     class CountingLimiter(RateLimiter):
-        def wait(self, should_cancel=None):
+        def dispatch(self, action, should_cancel=None):
             waits.append(1)
+            return action()
 
     transport = failing_then([APIError('x', retryable=True), OK_ACOUSTID])
     AcoustIDClient('k', transport=transport, limiter=CountingLimiter(0), retry=policy(Recorder())).lookup('fp', 1)
@@ -250,9 +251,10 @@ def test_limiter_spaces_requests_from_concurrent_workers():
 
     def worker():
         for _ in range(4):
-            limiter.wait()
-            with guard:
-                stamps.append(time.monotonic())
+            def send():
+                with guard:
+                    stamps.append(time.monotonic())
+            limiter.dispatch(send)
 
     threads = [threading.Thread(target=worker) for _ in range(4)]
     for t in threads:
