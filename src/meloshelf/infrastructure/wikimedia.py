@@ -58,8 +58,7 @@ class WikimediaPhotoProvider:
 
     def find(self, mb_id: str) -> dict:
         """{'status': 'found', ...attribution, thumb_url} or {'status': 'none', 'reason': ...}. Raises APIError."""
-        self._mb_limiter.wait()
-        artist = self._json(MB_URL.format(mbid=mb_id))
+        artist = self._mb_limiter.dispatch(lambda: self._json(MB_URL.format(mbid=mb_id)))
         qid = None
         for relation in (artist.get('relations') or []) if isinstance(artist, dict) else []:
             if isinstance(relation, dict) and relation.get('type') == 'wikidata':
@@ -69,8 +68,7 @@ class WikimediaPhotoProvider:
                     break
         if not qid:
             return {'status': 'none', 'reason': 'MusicBrainz lists no Wikidata item for this artist'}
-        self._wiki_limiter.wait()
-        entity = self._json(WIKIDATA_URL.format(qid=qid))
+        entity = self._wiki_limiter.dispatch(lambda: self._json(WIKIDATA_URL.format(qid=qid)))
         try:
             claims = entity['entities'][qid]['claims'].get('P18') or []
             name = claims[0]['mainsnak']['datavalue']['value']
@@ -78,11 +76,10 @@ class WikimediaPhotoProvider:
             return {'status': 'none', 'reason': 'the Wikidata item has no image'}
         if not isinstance(name, str) or not name.strip():
             return {'status': 'none', 'reason': 'the Wikidata item has no image'}
-        self._wiki_limiter.wait()
         query = urlencode({'action': 'query', 'titles': 'File:' + name, 'prop': 'imageinfo',
                            'iiprop': 'url|extmetadata|mime', 'iiurlwidth': THUMB_WIDTH, 'format': 'json',
                            'formatversion': 2})
-        commons = self._json(COMMONS_API + '?' + query)
+        commons = self._wiki_limiter.dispatch(lambda: self._json(COMMONS_API + '?' + query))
         try:
             info = commons['query']['pages'][0]['imageinfo'][0]
         except (KeyError, IndexError, TypeError):
@@ -101,5 +98,4 @@ class WikimediaPhotoProvider:
         """(content_type, bytes) for a thumbnail the caller will verify. Only Wikimedia hosts are fetched."""
         if not re.match(r'^https://(?:upload|thumb|commons)\.wikimedia\.org/', url or ''):
             raise APIError('Refusing to fetch an image from a host other than Wikimedia', retryable=False)
-        self._wiki_limiter.wait()
-        return self._bytes(url)
+        return self._wiki_limiter.dispatch(lambda: self._bytes(url))

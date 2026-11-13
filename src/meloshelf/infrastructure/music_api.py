@@ -61,6 +61,10 @@ class RateLimiter:
         self.sleeper = sleeper
         self._next = None
         self._lock = Lock()
+        # Reservations can be made without holding the state lock while sleeping,
+        # but dispatch itself must stay ordered. Otherwise a thread whose earlier
+        # slot wakes late can fire immediately beside a later reservation.
+        self._dispatch_lock = Lock()
 
     def reserve(self) -> float:
         """Book the next free slot and return how long the caller must wait for it."""
@@ -77,12 +81,29 @@ class RateLimiter:
             if self._next is None or self._next < earliest:
                 self._next = earliest
 
-    def wait(self, should_cancel: Callable[[], bool] | None = None) -> None:
-        delay = self.reserve()  # the lock is released before sleeping
-        if delay > 0:
-            self.sleeper(delay)
+    def _wait_for_slot(self, should_cancel: Callable[[], bool] | None = None) -> None:
+        delay = self.reserve()  # the state lock is released before sleeping
+        deadline = self.clock() + delay
+        while (remaining := deadline - self.clock()) > 0:
+            self.sleeper(remaining)
         if should_cancel and should_cancel():
             raise OperationCancelled('Cancelled while waiting for the rate limit')
+
+    def wait(self, should_cancel: Callable[[], bool] | None = None) -> None:
+        """Wait for an admission slot when no external action needs protection."""
+        with self._dispatch_lock:
+            self._wait_for_slot(should_cancel)
+
+    def dispatch(self, action: Callable, should_cancel: Callable[[], bool] | None = None):
+        """Run an external request inside its rate-limited dispatch slot.
+
+        Keeping the dispatch lock through the transport call makes the measured
+        request start—not an internal reservation—the concurrency boundary.
+        The separate state lock remains free while waiting and during I/O.
+        """
+        with self._dispatch_lock:
+            self._wait_for_slot(should_cancel)
+            return action()
 
 
 _PROVIDER_INTERVALS = {'acoustid': 1 / 3, 'musicbrainz': 1.1}
@@ -215,8 +236,10 @@ class _ProviderClient:
 
     def _send(self, url, **request):
         def attempt():
-            self.limiter.wait(self.should_cancel)
-            return self.transport(url, timeout=self.timeout, **request)
+            return self.limiter.dispatch(
+                lambda: self.transport(url, timeout=self.timeout, **request),
+                self.should_cancel,
+            )
         return call_with_retry(attempt, self.retry, should_cancel=self.should_cancel,
                                on_throttle=self.limiter.defer)
 

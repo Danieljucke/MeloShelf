@@ -87,13 +87,17 @@ class _Client:
     def _json(self, url: str, headers: dict | None = None):
         """One request; HTTP 429 honours Retry-After through the shared retry policy and surfaces as APIError."""
         def attempt():
-            self.limiter.wait(self.should_cancel)
-            return self.transport(url, headers=headers or {})
+            return self.limiter.dispatch(
+                lambda: self.transport(url, headers=headers or {}),
+                self.should_cancel,
+            )
         return call_with_retry(attempt, self.retry, should_cancel=self.should_cancel, on_throttle=self.limiter.defer)
 
     def download(self, url: str) -> tuple[str, bytes]:
-        self.limiter.wait(self.should_cancel)
-        return download_image(self.name, url, self.fetch)
+        return self.limiter.dispatch(
+            lambda: download_image(self.name, url, self.fetch),
+            self.should_cancel,
+        )
 
     def _found(self, url: str, source_url: str) -> dict:
         return {'provider': self.name, 'label': self.label, 'url': url, 'source_url': source_url, 'terms_url': self.terms_url,
