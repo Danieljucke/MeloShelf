@@ -17,6 +17,10 @@ class NoWait:
     def wait(self, *a, **k):
         self.waits += 1
 
+    def dispatch(self, action, *a, **k):
+        self.waits += 1
+        return action()
+
 
 def chain(mb=None, wd=None, commons=None):
     urls = []
